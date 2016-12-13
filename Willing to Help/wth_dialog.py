@@ -25,6 +25,7 @@ in the Netherlands.
 import os
 
 from PyQt4 import QtGui, uic
+from . import utility_functions as uf
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'wth_dialog_base.ui'))
 
@@ -40,4 +41,4 @@ class WTH_Dialog(QtGui.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        print self.PhoneCanvas # .setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        print self # .setWindowFlags(QtCore.Qt.FramelessWindowHint)

@@ -32,11 +32,18 @@ import resources
 from wth_dialog import WTH_Dialog
 import os.path
 
+# TODO only for python debug
+from PyQt4.QtGui import QDockWidget
 
 class Willing_to_Help:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
+
+        pythonConsole = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        if not pythonConsole.isVisible():
+            pythonConsole.setVisible(True)
+
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
