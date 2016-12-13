@@ -1,0 +1,38 @@
+# This file contains metadata for your plugin. Since
+# version 2.0 of QGIS this is the proper way to supply
+# information about a plugin. The old method of
+# embedding metadata in __init__.py will
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Willing to Help
+qgisMinimumVersion=2.0
+description=Willing to Help (WTH) takes simulated and timed data to manage and track volunteered resources in a disaster situation.
+version=0.1
+author=Panagiotis Karydakis, Kotryna Valečkaitė, Dimitris Xenakis
+email=sparkdevelopment.social@gmail.com
+
+about=This plugin was developed as a part of the course GEO1005 of Master of Geomatics.
+
+tracker=https://github.com/terrafo/2016_group1_WTH/issues
+repository=https://github.com/terrafo/2016_group1_WTH
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags= SDSS, volunteer, disaster
+
+homepage=https://github.com/terrafo/2016_group1_WTH
+category=Plugins
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
