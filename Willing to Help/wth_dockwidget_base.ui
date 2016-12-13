@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PhoneCanvas</class>
- <widget class="QWidget" name="PhoneCanvas">
-  <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
-  </property>
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -31,37 +28,9 @@
     <height>722</height>
    </size>
   </property>
-  <property name="cursor">
-   <cursorShape>PointingHandCursor</cursorShape>
-  </property>
   <property name="windowTitle">
-   <string>Smartphone</string>
+   <string>Smarphone</string>
   </property>
-  <property name="windowOpacity">
-   <double>1.000000000000000</double>
-  </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
-  <property name="locale">
-   <locale language="English" country="UnitedStates"/>
-  </property>
-  <widget class="QFrame" name="frame">
-   <property name="geometry">
-    <rect>
-     <x>-1</x>
-     <y>-1</y>
-     <width>381</width>
-     <height>721</height>
-    </rect>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections/>

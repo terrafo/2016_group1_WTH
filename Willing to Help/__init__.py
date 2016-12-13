@@ -8,7 +8,7 @@ in the Netherlands.
                              -------------------
         begin                : 2016-12-12
         copyright            : (C) 2016 by Panagiotis Karydakis, Kotryna Valečkaitė, Dimitris Xenakis
-        email                : j.a.lopesgil@tudelft.nl
+        email                : sparkdevelopment.social@gmail.com
         git sha              : $Format:%H$
  ***************************************************************************/
 
@@ -26,7 +26,7 @@ in the Netherlands.
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
-    """Load SpatialDecision class from file SpatialDecision.
+    """Load Willing_to_Help class from file wth_main.
 
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface

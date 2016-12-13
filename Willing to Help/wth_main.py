@@ -35,6 +35,16 @@ import os.path
 # TODO del. only for python debug
 from PyQt4.QtGui import QDockWidget
 
+# setup for remote debugging. Pycharm professional, only
+is_debug = False
+try:
+    import pydevd
+    has_pydevd = True
+except ImportError, e:
+    has_pydevd = False
+    is_debug = False
+
+
 class Willing_to_Help:
     """QGIS Plugin Implementation."""
 
@@ -71,6 +81,10 @@ class Willing_to_Help:
         self.menu = self.tr(u'&Willing to Help')
         self.toolbar = self.iface.addToolBar(u'WTH')
         self.toolbar.setObjectName(u'WTH')
+
+        print "** INITIALIZING SpatialDecision"
+        if has_pydevd and is_debug:
+            pydevd.settrace('localhost', port=53100, stdoutToServer=True, stderrToServer=True, suspend=False)
 
         self.pluginIsActive = False
         self.dockwidget = None
@@ -169,14 +183,16 @@ class Willing_to_Help:
         icon_path = self.plugin_dir + '/graphics/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'WTH Template'),
+            text=self.tr(u'Willing to Help'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dialog is closed"""
-        #print "** CLOSING SpatialDecision"
+
+        print "** CLOSING SpatialDecision"
+
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
         # remove this statement if dockwidget is to remain
@@ -189,9 +205,12 @@ class Willing_to_Help:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+
+        print "** UNLOAD SpatialDecision"
+
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&WTH Template'),
+                self.tr(u'&Willing to Help'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
@@ -202,7 +221,7 @@ class Willing_to_Help:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            # print "** STARTING WTH Plugin"
+            print "** STARTING WTH Plugin"
 
             # dockwidget may not exist if:
             # first run of plugin
@@ -211,11 +230,9 @@ class Willing_to_Help:
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = WTH_DockWidget(self.iface)
-                #self.dockwidget = WTH_DockWidget()
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
-
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
@@ -225,8 +242,8 @@ class Willing_to_Help:
             #pythonConsole = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
             #if not pythonConsole.isVisible():
                 #pythonConsole.setVisible(True)
-            #try:
-            #    self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole').setVisible(True)
-            #except:
-            #    pass
+            try:
+                self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole').setVisible(True)
+            except:
+                pass
             print "sdfsdfs"

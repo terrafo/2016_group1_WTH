@@ -22,19 +22,31 @@ in the Netherlands.
  ***************************************************************************/
 """
 
+#TODO clean the unused imports
 from PyQt4 import QtGui, QtCore, uic
+from qgis.core import *
+from qgis.networkanalysis import *
+from qgis.gui import *
+import processing
+
+# matplotlib for the charts
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 import os
-
+import random
+import csv
+import time
 
 from . import utility_functions as uf
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'wth_dockwidget_base.ui'))
-
+FORM_CLASS, _ = uic.loadUiType(os.path.join(
+    os.path.dirname(__file__), 'wth_dockwidget_base.ui'))
 
 class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     closingPlugin = QtCore.pyqtSignal()
+    updateAttribute = QtCore.pyqtSignal(str)
 
     def __init__(self, iface, parent=None):
         """Constructor."""
@@ -46,17 +58,10 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        #print self # .setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        # define globals
+        self.iface = iface
+        self.canvas = self.iface.mapCanvas()
 
     def closeEvent(self, event):
-        # disconnect interface signals
-        try:
-            self.iface.projectRead.disconnect(self.updateLayers)
-            self.iface.newProjectCreated.disconnect(self.updateLayers)
-            self.iface.legendInterface().itemRemoved.disconnect(self.updateLayers)
-            self.iface.legendInterface().itemAdded.disconnect(self.updateLayers)
-        except:
-            pass
-
         self.closingPlugin.emit()
         event.accept()
