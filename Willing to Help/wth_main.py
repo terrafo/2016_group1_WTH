@@ -165,7 +165,7 @@ class Willing_to_Help:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = '/graphics/icon.png'
+        icon_path = self.plugin_dir + '/graphics/icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'WTH Template'),

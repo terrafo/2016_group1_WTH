@@ -106,18 +106,8 @@ class SpatialDecision:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('SpatialDecision', message)
 
-
-    def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+    def add_action( self, icon_path, text, callback, enabled_flag=True, add_to_menu=True, add_to_toolbar=True,
+                    status_tip=None, whats_this=None, parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -191,22 +181,18 @@ class SpatialDecision:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
-
         #print "** CLOSING SpatialDecision"
-
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
         # Commented next statement since it causes QGIS crashe
         # when closing the docked window:
         # self.dockwidget = None
-
         self.pluginIsActive = False
 
 
@@ -223,7 +209,7 @@ class SpatialDecision:
         # remove the toolbar
         del self.toolbar
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def run(self):
         """Run method that loads and starts the plugin"""
 
