@@ -28,22 +28,17 @@ from qgis.core import *
 # initialize Qt resources from file resources.py
 import resources
 
-# Import the code for the dialog
-from wth_dialog import WTH_Dialog
+# Import the code for the DockWidget
+from wth_dockwidget import WTH_DockWidget
 import os.path
 
-# TODO only for python debug
+# TODO del. only for python debug
 from PyQt4.QtGui import QDockWidget
 
 class Willing_to_Help:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-
-        pythonConsole = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
-        if not pythonConsole.isVisible():
-            pythonConsole.setVisible(True)
-
         """Constructor.
 
         :param iface: An interface instance that will be passed to this class
@@ -74,9 +69,11 @@ class Willing_to_Help:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Willing to Help')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'WTH')
         self.toolbar.setObjectName(u'WTH')
+
+        self.pluginIsActive = False
+        self.dockwidget = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -143,9 +140,6 @@ class Willing_to_Help:
         :rtype: QAction
         """
 
-        # Create the dialog (after translation) and keep reference
-        self.dlg = WTH_Dialog()
-
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
@@ -179,7 +173,7 @@ class Willing_to_Help:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-    '''
+
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dialog is closed"""
         #print "** CLOSING SpatialDecision"
@@ -191,7 +185,7 @@ class Willing_to_Help:
         # when closing the docked window:
         # self.dockwidget = None
         self.pluginIsActive = False
-    '''
+
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -204,13 +198,35 @@ class Willing_to_Help:
         del self.toolbar
 
     def run(self):
-        """Run method that performs all the real work"""
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+        """Run method that loads and starts the plugin"""
+        if not self.pluginIsActive:
+            self.pluginIsActive = True
+
+            # print "** STARTING WTH Plugin"
+
+            # dockwidget may not exist if:
+            # first run of plugin
+            # removed on close (see self.onClosePlugin method)
+
+            if self.dockwidget == None:
+                # Create the dockwidget (after translation) and keep reference
+                self.dockwidget = WTH_DockWidget(self.iface)
+                #self.dockwidget = WTH_DockWidget()
+
+            # connect to provide cleanup on closing of dockwidget
+            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+
+
+            # show the dockwidget
+            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
+            self.dockwidget.show()
+
+            # TODO del. only for python debug
+            #pythonConsole = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+            #if not pythonConsole.isVisible():
+                #pythonConsole.setVisible(True)
+            #try:
+            #    self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole').setVisible(True)
+            #except:
+            #    pass
+            print "sdfsdfs"
