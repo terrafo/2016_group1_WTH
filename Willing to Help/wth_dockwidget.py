@@ -62,6 +62,39 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
 
+
+        #Makes the Widget Undockable
+        #self.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
+
+        # Makes the Widget to be like a popup
+        #self.setFloating(True)
+
+        #self.isActiveWindow()
+        #self.setFeatures(QtGui.QDockWidget.DockWidgetClosable | QtGui.QDockWidget.DockWidgetMovable)
+        #print self.windowState()
+        #self.setWindowState(QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
+        #self.updateGeometry()
+        #self.windowState()
+
+        #self.text_field = QtGui.QPlainTextEdit(self)
+        #self.text_field.setMinimumSize(381, 722)
+        #self.text_field.setStyleSheet("background-image: url(:graphics/Phone_Template.png);")
+
+        #self.setStyleSheet("""
+        #    .WTH_DockWidget {
+        #        border: 20px solid black;
+        #        border-radius: 10px;
+        #        background-color: rgb(5, 255, 255);
+        #        background-image: url(:graphics/Phone_Template.png);
+        #        }
+        #    """)
+
+        #movie = QtGui.QMovie(':icons/loading2.gif')
+        #self.logoLabel.setMovie(movie)
+        #movie.start()
+
+        #Form.setStyleSheet("QWidget#Form {background-image: url(test.jpg);}")
+
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()

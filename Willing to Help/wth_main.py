@@ -32,9 +32,6 @@ import resources
 from wth_dockwidget import WTH_DockWidget
 import os.path
 
-# TODO del. only for python debug
-from PyQt4.QtGui import QDockWidget
-
 # setup for remote debugging. Pycharm professional, only
 is_debug = False
 try:
@@ -221,12 +218,6 @@ class Willing_to_Help:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            print "** STARTING WTH Plugin"
-
-            # dockwidget may not exist if:
-            # first run of plugin
-            # removed on close (see self.onClosePlugin method)
-
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = WTH_DockWidget(self.iface)
@@ -234,16 +225,13 @@ class Willing_to_Help:
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
+
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            self.dockwidget.show()
 
-            # TODO del. only for python debug
-            #pythonConsole = iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
-            #if not pythonConsole.isVisible():
-                #pythonConsole.setVisible(True)
-            try:
-                self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole').setVisible(True)
-            except:
-                pass
-            print "sdfsdfs"
+            # Makes the Widget Undockable
+            self.dockwidget.setAllowedAreas(Qt.NoDockWidgetArea)
+
+            # Makes the Widget Floats
+            self.dockwidget.setFloating(True)
+            self.dockwidget.show()
