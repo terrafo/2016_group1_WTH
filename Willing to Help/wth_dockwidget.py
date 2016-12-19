@@ -78,7 +78,7 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         #self.text_field = QtGui.QPlainTextEdit(self)
         #self.text_field.setMinimumSize(381, 722)
-        #self.text_field.setStyleSheet("background-image: url(:graphics/Phone_Template.png);")
+        #self.text_field.setStyleSheet("#myFrameName { border-style: solid; border-width: 5px; }")
 
         #self.setStyleSheet("""
         #    .WTH_DockWidget {

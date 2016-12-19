@@ -2,5 +2,8 @@
   <qresource prefix="/">
     <file>graphics/Phone_Template.png</file>
     <file>graphics/icon.png</file>
+    <file>graphics/wth_popup.png</file>
+    <file>graphics/wth_popup_no.png</file>
+    <file>graphics/wth_popup_yes.png</file>
   </qresource>
 </RCC>

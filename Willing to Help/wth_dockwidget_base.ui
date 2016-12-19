@@ -96,10 +96,6 @@ background-position: top left;</string>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <zorder>Screen</zorder>
-   <zorder>Screen</zorder>
-   <zorder>Screen</zorder>
-   <zorder>Screen</zorder>
   </widget>
   <widget class="QFrame" name="Screen">
    <property name="geometry">
@@ -127,13 +123,16 @@ background-position: top left;</string>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QFrame" name="wth_popup">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>180</y>
-      <width>181</width>
-      <height>71</height>
+      <x>0</x>
+      <y>0</y>
+      <width>342</width>
+      <height>484</height>
      </rect>
     </property>
     <property name="font">
@@ -142,11 +141,95 @@ background-position: top left;</string>
      </font>
     </property>
     <property name="cursor">
-     <cursorShape>ArrowCursor</cursorShape>
+     <cursorShape>PointingHandCursor</cursorShape>
     </property>
-    <property name="text">
-     <string>PushButton</string>
+    <property name="styleSheet">
+     <string notr="true">QFrame#wth_popup{
+	background-image: url(:/graphics/wth_popup.png);
+}</string>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="pushButton_yes">
+     <property name="geometry">
+      <rect>
+       <x>55</x>
+       <y>250</y>
+       <width>107</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/wth_popup_yes.png</normaloff>:/graphics/wth_popup_yes.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>107</width>
+       <height>81</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_no">
+     <property name="geometry">
+      <rect>
+       <x>182</x>
+       <y>250</y>
+       <width>107</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/wth_popup_no.png</normaloff>:/graphics/wth_popup_no.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>107</width>
+       <height>81</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <zorder>pushButton_no</zorder>
+    <zorder>pushButton_yes</zorder>
    </widget>
    <widget class="QFrame" name="top_bar">
     <property name="geometry">
@@ -175,13 +258,11 @@ background-position: top left;</string>
      <enum>QFrame::Raised</enum>
     </property>
    </widget>
-   <zorder>ScreenFrame</zorder>
-   <zorder>ScreenFrame</zorder>
-   <zorder>ScreenFrame</zorder>
-   <zorder>ScreenFrame</zorder>
    <zorder>top_bar</zorder>
-   <zorder>pushButton</zorder>
+   <zorder>wth_popup</zorder>
   </widget>
+  <zorder>Screen</zorder>
+  <zorder>ScreenFrame</zorder>
  </widget>
  <resources/>
  <connections/>
