@@ -48,6 +48,9 @@
     <family>Roboto</family>
    </font>
   </property>
+  <property name="cursor">
+   <cursorShape>BlankCursor</cursorShape>
+  </property>
   <property name="mouseTracking">
    <bool>false</bool>
   </property>
@@ -93,13 +96,65 @@ background-position: top left;</string>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
+   <zorder>Screen</zorder>
+   <zorder>Screen</zorder>
+   <zorder>Screen</zorder>
+   <zorder>Screen</zorder>
+  </widget>
+  <widget class="QFrame" name="Screen">
+   <property name="geometry">
+    <rect>
+     <x>19</x>
+     <y>62</y>
+     <width>342</width>
+     <height>608</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Roboto</family>
+    </font>
+   </property>
+   <property name="cursor">
+    <cursorShape>PointingHandCursor</cursorShape>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>380</y>
-      <width>75</width>
-      <height>23</height>
+      <x>40</x>
+      <y>180</y>
+      <width>181</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QFrame" name="top_bar">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>342</width>
+      <height>68</height>
      </rect>
     </property>
     <property name="font">
@@ -110,10 +165,22 @@ background-position: top left;</string>
     <property name="cursor">
      <cursorShape>PointingHandCursor</cursorShape>
     </property>
-    <property name="text">
-     <string>PushButton</string>
+    <property name="styleSheet">
+     <string notr="true">background-color:rgb(110, 110, 110);</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
     </property>
    </widget>
+   <zorder>ScreenFrame</zorder>
+   <zorder>ScreenFrame</zorder>
+   <zorder>ScreenFrame</zorder>
+   <zorder>ScreenFrame</zorder>
+   <zorder>top_bar</zorder>
+   <zorder>pushButton</zorder>
   </widget>
  </widget>
  <resources/>
