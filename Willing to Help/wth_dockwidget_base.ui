@@ -123,6 +123,36 @@ background-position: top left;</string>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
+   <widget class="QFrame" name="top_bar">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>342</width>
+      <height>68</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color:rgb(110, 110, 110);</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
    <widget class="QFrame" name="wth_popup">
     <property name="enabled">
      <bool>true</bool>
@@ -231,13 +261,13 @@ background-position: top left;</string>
     <zorder>pushButton_no</zorder>
     <zorder>pushButton_yes</zorder>
    </widget>
-   <widget class="QFrame" name="top_bar">
+   <widget class="QgsMapCanvas" name="map_canvas" native="true">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
       <width>342</width>
-      <height>68</height>
+      <height>608</height>
      </rect>
     </property>
     <property name="font">
@@ -249,21 +279,24 @@ background-position: top left;</string>
      <cursorShape>PointingHandCursor</cursorShape>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(110, 110, 110);</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <string notr="true"/>
     </property>
    </widget>
+   <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
    <zorder>wth_popup</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsMapCanvas</class>
+   <extends>QWidget</extends>
+   <header location="global">qgis.gui</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

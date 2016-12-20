@@ -95,6 +95,55 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         #Form.setStyleSheet("QWidget#Form {background-image: url(test.jpg);}")
 
+        # Set Button connections
+        self.pushButton_yes.clicked.connect(self.will_to_help)
+
+        # Prepare Map Canvas
+
+        # Current path
+        cur_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Map path
+        source_dir = "/DB/shapefile_layers"
+
+        # total list of layers actually displayed on map canvas
+        canvas_layers = []
+
+        extent = QgsRectangle()
+        extent.setMinimal()
+
+        # load vector layers
+        for files in os.listdir(cur_path+source_dir):
+            # load only the shapefiles
+            if files.endswith(".shp"):
+
+                # create vector layer object
+                vlayer = QgsVectorLayer(cur_path+source_dir + "/" + files, files, "ogr")
+                print source_dir + "/" + files
+
+                # add the layer to the registry
+                QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+
+                # combine extent of the current vector layer with the extent of the created "extent" rectangle object
+                #extent.combineExtentWith(vlayer.extent())  # Use that for merged extent of all layers
+                canvas_layers.append(QgsMapCanvasLayer(vlayer))
+
+        # set extent to the extent of a larger rectangle so we can see all geometries
+        self.map_canvas.setExtent(extent)  # Use that for merged extent of all layers
+        self.map_canvas.setExtent(vlayer.extent())  # Use that for extent of a specific layer
+
+        # provide set of layers for display on the map canvas
+        self.map_canvas.setLayerSet(canvas_layers)
+
+        self.top_bar.hide()
+        getattr(self.wth_popup, "raise")()
+
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    def will_to_help(self):
+        self.wth_popup.hide()
+        self.top_bar.show()
+        getattr(self.top_bar, "raise")()
+        print "Lets get down to business"
