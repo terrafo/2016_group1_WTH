@@ -97,6 +97,7 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
+        self.pass_check_btn.clicked.connect(self.login_correct)
 
         # Prepare Map Canvas
 
@@ -135,8 +136,12 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         # provide set of layers for display on the map canvas
         self.map_canvas.setLayerSet(canvas_layers)
 
+        # Hide none init layers
         self.top_bar.hide()
-        getattr(self.wth_popup, "raise")()
+        self.wth_popup.hide()
+
+        # Show init layer
+        getattr(self.pass_popup, "raise")()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -145,5 +150,23 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
     def will_to_help(self):
         self.wth_popup.hide()
         self.top_bar.show()
+        #self.menu_group_btn.show()
+        #self.menu_layers_btn.show()
+        #self.menu_settings_btn.show()
         getattr(self.top_bar, "raise")()
+        getattr(self.menu_group_btn, "raise")()
+        getattr(self.menu_layers_btn, "raise")()
+        getattr(self.menu_settings_btn, "raise")()
+        self.menu_group_btn.show()
+        self.menu_layers_btn.show()
+        self.menu_settings_btn.show()
         print "Lets get down to business"
+
+    def login_correct(self):
+        # Hide login layer
+        self.pass_popup.hide()
+
+        # Show next layer
+        self.wth_popup.show()
+        getattr(self.wth_popup, "raise")()  #getattr(self.pass_popup, "lower")()  # Might be the opposite
+        print "done"

@@ -152,6 +152,120 @@ background-position: top left;</string>
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
+    <widget class="QPushButton" name="menu_group_btn">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>8</y>
+       <width>51</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/group.png</normaloff>:/graphics/group.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>51</width>
+       <height>51</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="menu_layers_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>12</y>
+       <width>11</width>
+       <height>43</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/layers.png</normaloff>:/graphics/layers.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>11</width>
+       <height>43</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="menu_settings_btn">
+     <property name="geometry">
+      <rect>
+       <x>28</x>
+       <y>18</y>
+       <width>42</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/settings.png</normaloff>:/graphics/settings.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>42</width>
+       <height>31</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <zorder>menu_settings_btn</zorder>
+    <zorder>menu_layers_btn</zorder>
+    <zorder>menu_group_btn</zorder>
    </widget>
    <widget class="QFrame" name="wth_popup">
     <property name="enabled">
@@ -282,9 +396,79 @@ background-position: top left;</string>
      <string notr="true"/>
     </property>
    </widget>
+   <widget class="QFrame" name="pass_popup">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>342</width>
+      <height>484</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QFrame#pass_popup{
+	background-image: url(:/graphics/pass_popup.png);
+}</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="pass_check_btn">
+     <property name="geometry">
+      <rect>
+       <x>72</x>
+       <y>270</y>
+       <width>193</width>
+       <height>52</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/graphics/pass_popup_text.png</normaloff>:/graphics/pass_popup_text.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>193</width>
+       <height>52</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
    <zorder>wth_popup</zorder>
+   <zorder>pass_popup</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>

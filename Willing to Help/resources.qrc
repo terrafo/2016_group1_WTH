@@ -5,6 +5,10 @@
     <file>graphics/wth_popup.png</file>
     <file>graphics/wth_popup_no.png</file>
     <file>graphics/wth_popup_yes.png</file>
-
+    <file>graphics/pass_popup.png</file>
+    <file>graphics/pass_popup_text.png</file>
+    <file>graphics/group.png</file>
+    <file>graphics/layers.png</file>
+    <file>graphics/settings.png</file>
   </qresource>
 </RCC>
