@@ -29,6 +29,7 @@ from qgis.networkanalysis import *
 from qgis.gui import *
 import processing
 
+from PyQt4.QtCore import QTimer
 # matplotlib for the charts
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -62,6 +63,8 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.user_autopositioning)
 
         #Makes the Widget Undockable
         #self.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
@@ -95,57 +98,91 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         #Form.setStyleSheet("QWidget#Form {background-image: url(test.jpg);}")
 
+        # Dictionary of active shapefiles displayed
+        self.active_shpfiles = {}
+
+        # Total list of layers actually displayed on map canvas
+        #self.canvas_layers = []
+
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
+        self.menu_settings_btn.clicked.connect(self.toggle_refresher)
+        # Hide none init layers
+        self.top_bar.hide()
+        self.wth_popup.hide()
 
+        self.load_shapefiles(["user_pos", "tasks", "road_network"])
+        self.refresh_extent("user_pos")
+
+        # Show init layer
+        getattr(self.pass_popup, "raise")()
+
+    def load_shapefiles(self, shp_files):
         # Prepare Map Canvas
-
         # Current path
         cur_path = os.path.dirname(os.path.abspath(__file__))
 
         # Map path
         source_dir = "/DB/shapefile_layers"
 
-        # total list of layers actually displayed on map canvas
-        canvas_layers = []
-
-        extent = QgsRectangle()
-        extent.setMinimal()
-
         # load vector layers
-        for files in os.listdir(cur_path+source_dir):
-            # load only the shapefiles
-            if files.endswith(".shp"):
+        for file in shp_files:  # os.listdir(cur_path+source_dir): # To read the path
+            #  if file.endswith(".shp"):  # load only the shapefiles
 
-                # create vector layer object
-                vlayer = QgsVectorLayer(cur_path+source_dir + "/" + files, files, "ogr")
-                print source_dir + "/" + files
+            # TODO Build dictionary to link to shapefiles
+            # TODO Create function to use extends based on specific shapefiles
+            # TODO Create Thread to update the Canvas
+            # create vector layer object
+            vlayer = QgsVectorLayer(cur_path+source_dir + "/" + file + ".shp", file, "ogr")
 
-                # add the layer to the registry
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+            # Add the layer to the dictionary
+            self.active_shpfiles[file] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
-                # combine extent of the current vector layer with the extent of the created "extent" rectangle object
-                #extent.combineExtentWith(vlayer.extent())  # Use that for merged extent of all layers
-                canvas_layers.append(QgsMapCanvasLayer(vlayer))
+            # add the layer to the registry
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
-        # set extent to the extent of a larger rectangle so we can see all geometries
-        self.map_canvas.setExtent(extent)  # Use that for merged extent of all layers
-        self.map_canvas.setExtent(vlayer.extent())  # Use that for extent of a specific layer
+            #self.canvas_layers.append(QgsMapCanvasLayer(vlayer))
+
+        #added_shpfiles = [self.active_shpfiles[x][0] for x in shp_files]  # List only new shpfiles
+        added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]  # List only new canvaslayers
 
         # provide set of layers for display on the map canvas
-        self.map_canvas.setLayerSet(canvas_layers)
+        self.map_canvas.setLayerSet(added_canvaslayers)
 
-        # Hide none init layers
-        self.top_bar.hide()
-        self.wth_popup.hide()
+    def refresh_extent(self, layer_to_load):
 
-        # Show init layer
-        getattr(self.pass_popup, "raise")()
+        #self.extent.setMinimal() # TODO is this really needed?
+
+        if layer_to_load == "user_pos":
+            user_point = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()]
+            user_pos = user_point[0].geometry().asPoint()
+
+            self.extent = QgsRectangle(user_pos[0] - 197.9, user_pos[1] - 255,
+                                       user_pos[0] + 195.1, user_pos[1] + 295)
+        else:
+            print "User selected a task"
+
+        #zoomRectangle = QgsRectangle(pos[0] - offset, pos[1] - offset, pos[0] + offset, pos[1] + offset)
+        #self.canvas.setExtent(zoomRectangle)
+
+        #for file in layers_to_load: #TODO FIX if not many files
+        #    # combine extent of the current vector layer with the extent of the created "extent" rectangle object
+        #    self.extent.combineExtentWith(self.active_shpfiles[file][0].extent())  # Use that for merged extent of all layers
+
+        # set extent to the extent of a larger rectangle so we can see all geometries
+        self.map_canvas.setExtent(self.extent)  # Use that for merged extent of all layers
+        #self.map_canvas.setExtent(vlayer.extent())  # Use that for extent of a specific layer
+
+        #self.canvas.refresh() # TODO might need
+        # Rerender the layer
+        self.active_shpfiles[layer_to_load][0].triggerRepaint()
+        #self.canvas.freeze(True)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+        self.timer.stop()
 
     def will_to_help(self):
         self.wth_popup.hide()
@@ -161,6 +198,15 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.menu_layers_btn.show()
         self.menu_settings_btn.show()
         print "Lets get down to business"
+
+    def toggle_refresher(self):
+        if not self.timer.isActive():
+            self.timer.start(1000)
+        else:
+            self.timer.stop()
+
+    def user_autopositioning(self):
+        self.refresh_extent("user_pos")
 
     def login_correct(self):
         # Hide login layer

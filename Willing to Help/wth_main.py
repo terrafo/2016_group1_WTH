@@ -176,7 +176,6 @@ class Willing_to_Help:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
         icon_path = self.plugin_dir + '/graphics/icon.png'
         self.add_action(
             icon_path,
@@ -184,12 +183,9 @@ class Willing_to_Help:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dialog is closed"""
-
         print "** CLOSING SpatialDecision"
-
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
         # remove this statement if dockwidget is to remain
@@ -198,7 +194,6 @@ class Willing_to_Help:
         # when closing the docked window:
         # self.dockwidget = None
         self.pluginIsActive = False
-
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -216,6 +211,7 @@ class Willing_to_Help:
     def run(self):
         """Run method that loads and starts the plugin"""
         if not self.pluginIsActive:
+
             self.pluginIsActive = True
 
             if self.dockwidget == None:
@@ -224,7 +220,6 @@ class Willing_to_Help:
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
-
 
             # show the dockwidget
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
