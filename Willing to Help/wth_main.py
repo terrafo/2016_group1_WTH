@@ -227,6 +227,8 @@ class Willing_to_Help:
             # Makes the Widget Undockable
             self.dockwidget.setAllowedAreas(Qt.NoDockWidgetArea)
 
+            self.dockwidget.timer.start(1000)
+
             # Makes the Widget Floats
             self.dockwidget.setFloating(True)
             self.dockwidget.show()

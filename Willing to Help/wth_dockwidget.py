@@ -23,13 +23,14 @@ in the Netherlands.
 """
 
 #TODO clean the unused imports
-from PyQt4 import QtGui, QtCore, uic
+from PyQt4 import QtCore, uic
+from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap
 from qgis.core import *
 from qgis.networkanalysis import *
 from qgis.gui import *
 import processing
+import datetime
 
-from PyQt4.QtCore import QTimer
 # matplotlib for the charts
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -44,7 +45,7 @@ from . import utility_functions as uf
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wth_dockwidget_base.ui'))
 
-class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
+class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
     closingPlugin = QtCore.pyqtSignal()
     updateAttribute = QtCore.pyqtSignal(str)
@@ -63,8 +64,8 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.user_autopositioning)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.refresher)
 
         #Makes the Widget Undockable
         #self.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
@@ -73,24 +74,11 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         #self.setFloating(True)
 
         #self.isActiveWindow()
-        #self.setFeatures(QtGui.QDockWidget.DockWidgetClosable | QtGui.QDockWidget.DockWidgetMovable)
+        #self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
         #print self.windowState()
         #self.setWindowState(QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         #self.updateGeometry()
         #self.windowState()
-
-        #self.text_field = QtGui.QPlainTextEdit(self)
-        #self.text_field.setMinimumSize(381, 722)
-        #self.text_field.setStyleSheet("#myFrameName { border-style: solid; border-width: 5px; }")
-
-        #self.setStyleSheet("""
-        #    .WTH_DockWidget {
-        #        border: 20px solid black;
-        #        border-radius: 10px;
-        #        background-color: rgb(5, 255, 255);
-        #        background-image: url(:graphics/Phone_Template.png);
-        #        }
-        #    """)
 
         #movie = QtGui.QMovie(':icons/loading2.gif')
         #self.logoLabel.setMovie(movie)
@@ -107,20 +95,93 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
-        self.menu_settings_btn.clicked.connect(self.toggle_refresher)
+        #self.menu_settings_btn.clicked.connect()
+        self.menu_settings_btn.setStyleSheet("QPushButton#menu_settings_btn:checked {background: transparent;}")
+
+        self.menu_layers_btn.clicked.connect(self.check_events)
+        self.task_list_back_btn.clicked.connect(self.close_check_events)
+        #self.task_list_back_btn.clicked.connect(self.add_new_label)
+
         # Hide none init layers
         self.top_bar.hide()
         self.wth_popup.hide()
+        self.task_list.hide()
 
         self.load_shapefiles(["user_pos", "tasks", "road_network"])
+
+        # Convert tasks into a dictionary
+        self.task_dict = self.task_parser(self.active_shpfiles["tasks"][0])
+
+        # Build icons dictionaries
+        self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
+        self.group_icons = {0: "Group_Icon0.png", 1: "Group_Icon1.png", 2: "Group_Icon2.png"}
+
+        #Container Widget
+        self.event_widget = QWidget()  # Set name: #self.stats_scrollarea.setObjectName("stats_scrollArea")
+        self.event_widget.setStyleSheet("QWidget{background: transparent}")
+
         self.refresh_extent("user_pos")
+        self.refresh_event_list()
 
         # Show init layer
         getattr(self.pass_popup, "raise")()
 
+    def refresh_event_list(self):
+
+        #label = QLabel("new")
+        #self.events_vertical_layout.layout().addWidget(label)
+
+        #Layout of Container Widget
+        layout = QVBoxLayout(self)
+        for event, attr in self.task_dict.iteritems():
+            event_layout = QHBoxLayout(self)
+
+            event_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.event_icons[attr["priority"]]
+            event_icon = QLabel()
+            event_icon.setGeometry(0, 0, 16, 29)
+            event_icon.setMinimumWidth(16)
+            event_icon.setMaximumWidth(16)
+            event_icon.setPixmap(QPixmap(event_icon_path))
+            event_layout.addWidget(event_icon)
+
+            event_text_layout = QVBoxLayout(self)
+            event_text_layout.setSpacing(0)
+
+            event_title = QLabel(attr["title"])
+            event_title.setStyleSheet("QLabel {font-family: Impact; font-size: 17pt; color: white;}")
+            event_title.setMinimumHeight(35)
+            event_title.setMaximumWidth(220)
+            event_text_layout.addWidget(event_title)
+
+            event_skills = QLabel("Hammer, Dog, Money")
+            event_skills.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white;}")
+            event_skills.setMaximumWidth(220)
+            event_text_layout.addWidget(event_skills)
+
+            event_layout.addLayout(event_text_layout)
+
+            group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.group_icons[attr["group"]]
+            group_icon = QLabel()
+            group_icon.setGeometry(0, 0, 34, 34)
+            group_icon.setMinimumWidth(34)
+            group_icon.setMaximumWidth(34)
+            group_icon.setPixmap(QPixmap(group_icon_path))
+            event_layout.addWidget(group_icon)
+
+            event_title.mouseReleaseEvent = self.check_about_event
+
+            layout.addLayout(event_layout)
+
+        self.event_widget.setLayout(layout)
+        self.events_scrollArea.setWidget(self.event_widget)
+
+    def check_about_event(self, *args):
+        print "Check About"
+        #label = QLabel("new")
+        #self.event_widget.layout().addWidget(label)
+
     def load_shapefiles(self, shp_files):
         # Prepare Map Canvas
-        # Current path
         cur_path = os.path.dirname(os.path.abspath(__file__))
 
         # Map path
@@ -199,14 +260,29 @@ class WTH_DockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.menu_settings_btn.show()
         print "Lets get down to business"
 
-    def toggle_refresher(self):
-        if not self.timer.isActive():
-            self.timer.start(1000)
+    def refresher(self):
+        if not self.menu_settings_btn.isChecked():
+            print "WTF"
         else:
-            self.timer.stop()
+            self.refresh_extent("user_pos")
 
-    def user_autopositioning(self):
-        self.refresh_extent("user_pos")
+    def task_parser(self, layer):
+        event_dict = {}
+        # fields = [field.name() for field in layer.pendingFields()]  # Get attributes
+        request = QgsFeatureRequest()
+        request.setFlags(QgsFeatureRequest.NoGeometry)
+        for feature in layer.getFeatures(request):
+            # attrs is a list. It contains all the attribute values of this feature
+            attrs = feature.attributes()
+            event_dict[attrs[0]] = {'timed': attrs[1], 'title': attrs[2], 'about': attrs[3], 'group': attrs[4],
+                                    'missing': attrs[5], 'priority': attrs[6]}
+        return event_dict
+
+    def check_events(self):
+        self.task_list.show()
+
+    def close_check_events(self):
+        self.task_list.hide()
 
     def login_correct(self):
         # Hide login layer

@@ -58,7 +58,136 @@
    <string>Smarphone</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">QFrame#task_list{
+	background-image: url(:/graphics/low_background.png);
+}
+
+QFrame#pass_popup{
+	background-image: url(:/graphics/pass_popup.png);
+}
+
+QFrame#top_bar{
+background-color:rgb(110, 110, 110);
+}
+
+QFrame#wth_popup{
+	background-image: url(:/graphics/wth_popup.png);
+}
+
+QFrame#ScreenFrame{
+background-image: url(:/graphics/Phone_Template.png);
+background-position: top left;
+}
+
+QLabel#events_title{
+font-family: Impact;
+font-size: 25pt;
+color: white;
+}
+
+QScrollArea{
+background-color:transparent;
+}
+
+QPushButton#menu_settings_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/settings_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#menu_layers_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/layers_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#task_list_back_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/close_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pushButton_no:hover{
+background-color:transparent;
+background-image: url(:/graphics/wth_popup_no_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pushButton_yes:hover{
+background-color:transparent;
+background-image: url(:/graphics/wth_popup_yes_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#menu_group_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/group_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pass_check_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/pass_popup_text_checked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#menu_settings_btn{
+background-color:transparent;
+background-image: url(:/graphics/settings.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#menu_layers_btn{
+background-color:transparent;
+background-image: url(:/graphics/layers.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#task_list_back_btn{
+background-color:transparent;
+background-image: url(:/graphics/close.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pushButton_no{
+background-color:transparent;
+background-image: url(:/graphics/wth_popup_no.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pushButton_yes{
+background-color:transparent;
+background-image: url(:/graphics/wth_popup_yes.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#menu_group_btn{
+background-color:transparent;
+background-image: url(:/graphics/group.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#pass_check_btn{
+background-color:transparent;
+background-image: url(:/graphics/pass_popup_text.png);
+background-position: top left;
+border: none;
+}
+
+</string>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
@@ -87,8 +216,7 @@
     <bool>false</bool>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-image: url(:/graphics/Phone_Template.png);
-background-position: top left;</string>
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -144,7 +272,7 @@ background-position: top left;</string>
      <cursorShape>PointingHandCursor</cursorShape>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color:rgb(110, 110, 110);</string>
+     <string notr="true"/>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -169,15 +297,14 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/group.png</normaloff>:/graphics/group.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -206,15 +333,14 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/layers.png</normaloff>:/graphics/layers.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -243,21 +369,23 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
      </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/settings.png</normaloff>:/graphics/settings.png</iconset>
-     </property>
      <property name="iconSize">
       <size>
        <width>42</width>
        <height>31</height>
       </size>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -288,9 +416,7 @@ background-position: top left;</string>
      <cursorShape>PointingHandCursor</cursorShape>
     </property>
     <property name="styleSheet">
-     <string notr="true">QFrame#wth_popup{
-	background-image: url(:/graphics/wth_popup.png);
-}</string>
+     <string notr="true"/>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -315,15 +441,14 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/wth_popup_yes.png</normaloff>:/graphics/wth_popup_yes.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -352,15 +477,14 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/wth_popup_no.png</normaloff>:/graphics/wth_popup_no.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -417,9 +541,7 @@ background-position: top left;</string>
      <cursorShape>PointingHandCursor</cursorShape>
     </property>
     <property name="styleSheet">
-     <string notr="true">QFrame#pass_popup{
-	background-image: url(:/graphics/pass_popup.png);
-}</string>
+     <string notr="true"/>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -444,15 +566,14 @@ background-position: top left;</string>
      <property name="cursor">
       <cursorShape>CrossCursor</cursorShape>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
       <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>:/graphics/pass_popup_text.png</normaloff>:/graphics/pass_popup_text.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -465,10 +586,169 @@ background-position: top left;</string>
      </property>
     </widget>
    </widget>
+   <widget class="QFrame" name="task_list">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>268</y>
+      <width>342</width>
+      <height>342</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="task_list_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="events_title">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>10</y>
+       <width>250</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>25</pointsize>
+      </font>
+     </property>
+     <property name="midLineWidth">
+      <number>0</number>
+     </property>
+     <property name="text">
+      <string>Events</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
+    <widget class="QScrollArea" name="events_scrollArea">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>50</y>
+       <width>321</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>321</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>321</width>
+         <height>281</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="events_vertical_layout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+       </layout>
+      </widget>
+     </widget>
+    </widget>
+   </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
    <zorder>wth_popup</zorder>
    <zorder>pass_popup</zorder>
+   <zorder>task_list</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>
