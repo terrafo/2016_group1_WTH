@@ -24,12 +24,12 @@ in the Netherlands.
 
 #TODO clean the unused imports
 from PyQt4 import QtCore, uic
-from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap
+from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton
 from qgis.core import *
 from qgis.networkanalysis import *
 from qgis.gui import *
 import processing
-import datetime
+from datetime import datetime, timedelta
 
 # matplotlib for the charts
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -54,58 +54,38 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         """Constructor."""
         super(WTH_DockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
         # define globals
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
 
+        # Set global timer and interval
+        self.seconds_passed = 0
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.refresher)
 
-        #Makes the Widget Undockable
-        #self.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
 
-        # Makes the Widget to be like a popup
-        #self.setFloating(True)
-
-        #self.isActiveWindow()
-        #self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
-        #print self.windowState()
-        #self.setWindowState(QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
-        #self.updateGeometry()
-        #self.windowState()
-
-        #movie = QtGui.QMovie(':icons/loading2.gif')
-        #self.logoLabel.setMovie(movie)
-        #movie.start()
-
-        #Form.setStyleSheet("QWidget#Form {background-image: url(test.jpg);}")
+        # Reference to the currently selected event
+        self.selected_event = None
 
         # Dictionary of active shapefiles displayed
         self.active_shpfiles = {}
 
-        # Total list of layers actually displayed on map canvas
-        #self.canvas_layers = []
-
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
-        #self.menu_settings_btn.clicked.connect()
         self.menu_settings_btn.setStyleSheet("QPushButton#menu_settings_btn:checked {background: transparent;}")
 
         self.menu_layers_btn.clicked.connect(self.check_events)
         self.task_list_back_btn.clicked.connect(self.close_check_events)
-        #self.task_list_back_btn.clicked.connect(self.add_new_label)
+        self.about_event_back_btn.clicked.connect(self.close_about_event)
 
         # Hide none init layers
         self.top_bar.hide()
         self.wth_popup.hide()
         self.task_list.hide()
+        self.about_task.hide()
 
         self.load_shapefiles(["user_pos", "tasks", "road_network"])
 
@@ -116,21 +96,19 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
         self.group_icons = {0: "Group_Icon0.png", 1: "Group_Icon1.png", 2: "Group_Icon2.png"}
 
-        #Container Widget
+        # Container Widget
         self.event_widget = QWidget()  # Set name: #self.stats_scrollarea.setObjectName("stats_scrollArea")
         self.event_widget.setStyleSheet("QWidget{background: transparent}")
 
+        # Refresh extent to user position
         self.refresh_extent("user_pos")
+        # Refresh event list
         self.refresh_event_list()
 
         # Show init layer
         getattr(self.pass_popup, "raise")()
 
     def refresh_event_list(self):
-
-        #label = QLabel("new")
-        #self.events_vertical_layout.layout().addWidget(label)
-
         #Layout of Container Widget
         layout = QVBoxLayout(self)
         for event, attr in self.task_dict.iteritems():
@@ -147,11 +125,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             event_text_layout = QVBoxLayout(self)
             event_text_layout.setSpacing(0)
 
-            event_title = QLabel(attr["title"])
-            event_title.setStyleSheet("QLabel {font-family: Impact; font-size: 17pt; color: white;}")
-            event_title.setMinimumHeight(35)
-            event_title.setMaximumWidth(220)
-            event_text_layout.addWidget(event_title)
+            event_text_layout.addWidget(self.event_button_generator(event, attr))
 
             event_skills = QLabel("Hammer, Dog, Money")
             event_skills.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white;}")
@@ -168,17 +142,54 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             group_icon.setPixmap(QPixmap(group_icon_path))
             event_layout.addWidget(group_icon)
 
-            event_title.mouseReleaseEvent = self.check_about_event
-
             layout.addLayout(event_layout)
 
         self.event_widget.setLayout(layout)
         self.events_scrollArea.setWidget(self.event_widget)
 
-    def check_about_event(self, *args):
-        print "Check About"
-        #label = QLabel("new")
-        #self.event_widget.layout().addWidget(label)
+    def event_button_generator(self, task_id, attr):
+        btn = QPushButton(attr["title"])
+        btn.setStyleSheet("QPushButton {font-family: Impact; font-size: 17pt; color: white; text-align: left;}")
+        btn.setMinimumHeight(35)
+        btn.setMaximumWidth(220)
+        btn.clicked.connect(lambda: self.check_about_event(task_id, attr))
+        return btn
+
+    def check_about_event(self, task_id, attr):
+        # Set current event id as the selected one
+        self.selected_event = task_id
+
+        group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.group_icons[attr["group"]]
+        self.about_group_icon.setPixmap(QPixmap(group_icon_path))
+        self.event_title.setText(attr["title"])
+        self.group_missing_note.setText('Missing {} people for a full party.'.format(attr["missing"]))
+        self.group_missing_note.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white; qproperty-alignment: AlignCenter AlignRight;}")
+        about_text = "<html><b>This and this and that.</b</html><br><br>" + attr["about"]
+        self.about_event_txt.setText(about_text)
+        try:
+            self.join_event.clicked.disconnect()
+        except:
+            pass
+
+        # Bind join button to the corresponding function
+        self.join_event.clicked.connect(lambda: self.join_event_started(task_id))
+
+        # Zoom onto the selected event
+        self.refresh_extent(task_id)
+
+        # Hide the event list footer
+        self.task_list.hide()
+
+        # Show the about information of the selected event
+        self.about_task.show()
+
+    def join_event_started(self, event_id):
+        print "go to", event_id
+        self.about_task.hide()
+        # No event is selected anymore
+        self.selected_event = None
+        # Reset event timer
+        self.counter_event.setText("--:--:--")
 
     def load_shapefiles(self, shp_files):
         # Prepare Map Canvas
@@ -189,8 +200,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # load vector layers
         for file in shp_files:  # os.listdir(cur_path+source_dir): # To read the path
-            #  if file.endswith(".shp"):  # load only the shapefiles
-
             # TODO Build dictionary to link to shapefiles
             # TODO Create function to use extends based on specific shapefiles
             # TODO Create Thread to update the Canvas
@@ -203,9 +212,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # add the layer to the registry
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
-            #self.canvas_layers.append(QgsMapCanvasLayer(vlayer))
-
-        #added_shpfiles = [self.active_shpfiles[x][0] for x in shp_files]  # List only new shpfiles
         added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]  # List only new canvaslayers
 
         # provide set of layers for display on the map canvas
@@ -222,7 +228,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.extent = QgsRectangle(user_pos[0] - 197.9, user_pos[1] - 255,
                                        user_pos[0] + 195.1, user_pos[1] + 295)
         else:
-            print "User selected a task"
+            user_pos = self.task_dict[layer_to_load]["position"]
+            self.extent = QgsRectangle(user_pos[0] - 197.9, user_pos[1] - 350,
+                                       user_pos[0] + 195.1, user_pos[1] + 50)
 
         #zoomRectangle = QgsRectangle(pos[0] - offset, pos[1] - offset, pos[0] + offset, pos[1] + offset)
         #self.canvas.setExtent(zoomRectangle)
@@ -236,9 +244,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         #self.map_canvas.setExtent(vlayer.extent())  # Use that for extent of a specific layer
 
         #self.canvas.refresh() # TODO might need
-        # Rerender the layer
-        self.active_shpfiles[layer_to_load][0].triggerRepaint()
-        #self.canvas.freeze(True)
+        # Re-render the road network (along with everything else)
+        self.active_shpfiles["road_network"][0].triggerRepaint()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -248,9 +255,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
     def will_to_help(self):
         self.wth_popup.hide()
         self.top_bar.show()
-        #self.menu_group_btn.show()
-        #self.menu_layers_btn.show()
-        #self.menu_settings_btn.show()
         getattr(self.top_bar, "raise")()
         getattr(self.menu_group_btn, "raise")()
         getattr(self.menu_layers_btn, "raise")()
@@ -261,21 +265,35 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         print "Lets get down to business"
 
     def refresher(self):
+        # Append to time fixed seconds
+        self.seconds_passed += 4
+        # Simulate new time
+        self_simulated_time = datetime.today() + timedelta(0, self.seconds_passed)
+
         if not self.menu_settings_btn.isChecked():
             print "WTF"
         else:
             self.refresh_extent("user_pos")
 
+        # If use has selected to view a specific event..
+        if self.selected_event:
+            # Event's end time
+            e = datetime.strptime(self.task_dict[self.selected_event]["timed"], '%Y-%m-%d %H:%M:%S')
+
+            # Time difference between simulated time and event's end time
+            d = e - self_simulated_time
+            event_timer = '{0:0=2d}:{1:0=2d}:{2:0=2d}'.format(((d.seconds/3600) + d.days*24), ((d.seconds//60) % 60), (d.seconds % 60))
+
+            # Update event timer
+            self.counter_event.setText(event_timer)
+
     def task_parser(self, layer):
         event_dict = {}
-        # fields = [field.name() for field in layer.pendingFields()]  # Get attributes
-        request = QgsFeatureRequest()
-        request.setFlags(QgsFeatureRequest.NoGeometry)
-        for feature in layer.getFeatures(request):
+        for feature in layer.getFeatures():
             # attrs is a list. It contains all the attribute values of this feature
             attrs = feature.attributes()
             event_dict[attrs[0]] = {'timed': attrs[1], 'title': attrs[2], 'about': attrs[3], 'group': attrs[4],
-                                    'missing': attrs[5], 'priority': attrs[6]}
+                                    'missing': attrs[5], 'priority': attrs[6], 'position': feature.geometry().asPoint()}
         return event_dict
 
     def check_events(self):
@@ -283,6 +301,14 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
     def close_check_events(self):
         self.task_list.hide()
+
+    def close_about_event(self):
+        self.about_task.hide()
+        # No event is selected anymore
+        self.selected_event = None
+        # Reset event timer
+        self.counter_event.setText("--:--:--")
+        self.task_list.show()
 
     def login_correct(self):
         # Hide login layer

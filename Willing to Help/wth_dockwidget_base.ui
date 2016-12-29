@@ -62,6 +62,10 @@
 	background-image: url(:/graphics/low_background.png);
 }
 
+QFrame#about_task{
+	background-image: url(:/graphics/low_background.png);
+}
+
 QFrame#pass_popup{
 	background-image: url(:/graphics/pass_popup.png);
 }
@@ -85,8 +89,44 @@ font-size: 25pt;
 color: white;
 }
 
+QLabel#event_title{
+font-family: Impact;
+font-size: 25pt;
+color: white;
+}
+
+QTextEdit#about_event_txt{
+background-color:transparent;
+color: white;
+font-family: Roboto;
+font-size: 14pt;
+border: none;
+}
+
 QScrollArea{
 background-color:transparent;
+}
+
+QVBoxLayout#about_event_vertical_layout{
+background-color:transparent;
+}
+
+QPushButton#counter_event{
+background-image: url(:/graphics/button_background.png);
+background-position: top left;
+border: none;
+color: red;
+font-family: Impact;
+font-size: 27pt;
+}
+
+QPushButton#join_event{
+background-image: url(:/graphics/button_background.png);
+background-position: top left;
+border: none;
+color: white;
+font-family: Impact;
+font-size: 30pt;
 }
 
 QPushButton#menu_settings_btn:hover{
@@ -187,7 +227,19 @@ background-position: top left;
 border: none;
 }
 
-</string>
+QPushButton#about_event_back_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/close_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#about_event_back_btn{
+background-color:transparent;
+background-image: url(:/graphics/close.png);
+background-position: top left;
+border: none;
+}</string>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
@@ -744,11 +796,295 @@ border: none;
      </widget>
     </widget>
    </widget>
+   <widget class="QFrame" name="about_task">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>268</y>
+      <width>342</width>
+      <height>342</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="about_event_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="event_title">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>10</y>
+       <width>250</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>25</pointsize>
+      </font>
+     </property>
+     <property name="midLineWidth">
+      <number>0</number>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </widget>
+    <widget class="QFrame" name="event_footer_panel">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>210</y>
+       <width>321</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="mouseTracking">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QPushButton" name="join_event">
+      <property name="geometry">
+       <rect>
+        <x>173</x>
+        <y>40</y>
+        <width>138</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Impact</family>
+        <pointsize>30</pointsize>
+       </font>
+      </property>
+      <property name="cursor">
+       <cursorShape>CrossCursor</cursorShape>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>JOIN</string>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>107</width>
+        <height>81</height>
+       </size>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="counter_event">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>138</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Impact</family>
+        <pointsize>27</pointsize>
+       </font>
+      </property>
+      <property name="cursor">
+       <cursorShape>CrossCursor</cursorShape>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>-- : -- : --</string>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>107</width>
+        <height>81</height>
+       </size>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="about_group_icon">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>5</y>
+        <width>34</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="group_missing_note">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>5</y>
+        <width>251</width>
+        <height>34</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QTextEdit" name="about_event_txt">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>50</y>
+       <width>321</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="cursor" stdset="0">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="undoRedoEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="acceptRichText">
+      <bool>false</bool>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::NoTextInteraction</set>
+     </property>
+    </widget>
+    <zorder>about_event_back_btn</zorder>
+    <zorder>event_title</zorder>
+    <zorder>event_footer_panel</zorder>
+    <zorder>ScreenFrame</zorder>
+    <zorder>ScreenFrame</zorder>
+    <zorder>about_event_txt</zorder>
+    <zorder>ScreenFrame</zorder>
+   </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
    <zorder>wth_popup</zorder>
    <zorder>pass_popup</zorder>
    <zorder>task_list</zorder>
+   <zorder>about_task</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>

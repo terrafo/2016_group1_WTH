@@ -25,5 +25,6 @@
     <file>graphics/wth_popup_yes_clicked.png</file>
     <file>graphics/wth_popup_no_clicked.png</file>
     <file>graphics/pass_popup_text_checked.png</file>
+    <file>graphics/button_background.png</file>
   </qresource>
 </RCC>
