@@ -30,17 +30,8 @@ from qgis.networkanalysis import *
 from qgis.gui import *
 import processing
 from datetime import datetime, timedelta
-
-# matplotlib for the charts
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
 import os
-import random
-import csv
-import time
-
-from . import utility_functions as uf
+#from . import utility_functions as uf
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wth_dockwidget_base.ui'))
@@ -65,12 +56,22 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.refresher)
 
+        # Define the graph
+        self.graph = QgsGraph()
+        # Define the list of tied points
+        self.tied_points = []
+
+        # Development stage
+        self.setNetworkButton.hide()
+        self.shortestRouteButton.hide()
+        self.clearRouteButton.hide()
+        # Bind buttons to specific path finding methods
+        #self.setNetworkButton.clicked.connect(self.buildNetwork)
+        #self.shortestRouteButton.clicked.connect(self.calculateRoute)
+        #self.clearRouteButton.clicked.connect(self.deleteRoutes)
 
         # Reference to the currently selected event
         self.selected_event = None
-
-        # Dictionary of active shapefiles displayed
-        self.active_shpfiles = {}
 
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
@@ -87,10 +88,21 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.task_list.hide()
         self.about_task.hide()
 
+        # Dictionary of active shapefiles displayed
+        self.active_shpfiles = {}
+
+        # Load specific classes of layers
         self.load_shapefiles(["user_pos", "tasks", "road_network"])
 
         # Convert tasks into a dictionary
         self.task_dict = self.task_parser(self.active_shpfiles["tasks"][0])
+
+        # Set user position as point
+        self.user_pos = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()][0].geometry().asPoint()
+
+        # Set joined event position as point
+        self.joined_event_pos = None
+        self.joined_event_pos = self.task_dict[145524]["position"]  # TODO delete, this is only for testing
 
         # Build icons dictionaries
         self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
@@ -107,6 +119,82 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Show init layer
         getattr(self.pass_popup, "raise")()
+
+    def find_nearest_path(self):
+        # Get road_network
+        self.network_layer = self.active_shpfiles["road_network"][0]
+        # get the points to be used as origin and destination
+        source_points = [self.user_pos, self.joined_event_pos]
+        # build the graph including these points
+        director = QgsLineVectorLayerDirector(self.network_layer, -1, '', '', '', 3)
+        properter = QgsDistanceArcProperter()
+        director.addProperter(properter)
+        builder = QgsGraphBuilder(self.network_layer.crs())
+        self.tied_points = director.makeGraph(builder, source_points)
+        self.graph = builder.graph()
+        # calculate the shortest path for the given origin and destination
+        path = self.calculateRouteDijkstra(self.graph, self.tied_points[0], self.tied_points[1])
+        #print path
+        self.draw_route(path)
+
+    def draw_route(self, path):
+        if not "joined_event" in self.active_shpfiles:
+            vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', self.network_layer.crs().postgisSrid()), 'Routes', "memory")
+            symbol = QgsLineSymbolV2.createSimple({'line_width': '1'})
+            vlayer.rendererV2().setSymbol(symbol)
+            #print vlayer.rendererV2().symbol().symbolLayers()[0].properties()
+            vlayer.startEditing()
+            provider = vlayer.dataProvider()
+            provider.addAttributes([QgsField('id', QtCore.QVariant.String)])
+            vlayer.commitChanges()
+            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+        else:
+            provider = self.active_shpfiles["joined_event"][0].dataProvider()
+            features = [f for f in self.active_shpfiles["joined_event"][0].getFeatures()]
+            provider.deleteFeatures([features[0].id()])
+
+        # insert route line
+        fet = QgsFeature()
+        fet.setGeometry(QgsGeometry.fromPolyline(path))
+        fet.setAttributes(['Fastest Route'])
+        provider.addFeatures([fet])
+        provider.updateExtents()
+
+        x_min, x_max = sorted((self.joined_event_pos[0], self.user_pos[0]))
+        y_min, y_max = sorted((self.joined_event_pos[1], self.user_pos[1]))
+        extent = QgsRectangle(x_min-60, y_min-60, x_max+60, y_max+250)
+
+        self.map_canvas.setExtent(extent)
+
+        if "joined_event" not in self.active_shpfiles:
+            # Add the layer to the dictionary
+            self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
+
+            added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event", "road_network"]]
+
+            # provide set of layers for display on the map canvas
+            self.map_canvas.setLayerSet(added_canvaslayers)
+
+        # Re-render the road network (along with everything else)
+        self.active_shpfiles["road_network"][0].triggerRepaint()
+
+    def calculateRouteDijkstra(self, graph, from_point, to_point, impedance=0):
+        points = []
+        # analyse graph
+        from_id = graph.findVertex(from_point)
+        to_id = graph.findVertex(to_point)
+        (tree, cost) = QgsGraphAnalyzer.dijkstra(graph, from_id, impedance)
+        if tree[to_id] == -1:
+            pass
+        else:
+            curPos = to_id
+            while curPos != from_id:
+                points.append(graph.vertex(graph.arc(tree[curPos]).inVertex()).point())
+                curPos = graph.arc(tree[curPos]).outVertex()
+
+            points.append(from_point)
+            points.reverse()
+        return points
 
     def refresh_event_list(self):
         #Layout of Container Widget
@@ -184,7 +272,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.about_task.show()
 
     def join_event_started(self, event_id):
-        print "go to", event_id
+        self.joined_event_pos = self.task_dict[event_id]["position"]
+        self.find_nearest_path()
         self.about_task.hide()
         # No event is selected anymore
         self.selected_event = None
@@ -192,57 +281,31 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.counter_event.setText("--:--:--")
 
     def load_shapefiles(self, shp_files):
-        # Prepare Map Canvas
-        cur_path = os.path.dirname(os.path.abspath(__file__))
-
-        # Map path
-        source_dir = "/DB/shapefile_layers"
-
         # load vector layers
-        for file in shp_files:  # os.listdir(cur_path+source_dir): # To read the path
-            # TODO Build dictionary to link to shapefiles
-            # TODO Create function to use extends based on specific shapefiles
-            # TODO Create Thread to update the Canvas
+        for layer_class in shp_files:
             # create vector layer object
-            vlayer = QgsVectorLayer(cur_path+source_dir + "/" + file + ".shp", file, "ogr")
+            vlayer = QgsVectorLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/" +
+                                    layer_class + ".shp", layer_class, "ogr")
 
             # Add the layer to the dictionary
-            self.active_shpfiles[file] = [vlayer, QgsMapCanvasLayer(vlayer)]
+            self.active_shpfiles[layer_class] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
             # add the layer to the registry
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
-        added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]  # List only new canvaslayers
+        added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]
 
         # provide set of layers for display on the map canvas
         self.map_canvas.setLayerSet(added_canvaslayers)
 
     def refresh_extent(self, layer_to_load):
-
-        #self.extent.setMinimal() # TODO is this really needed?
-
         if layer_to_load == "user_pos":
-            user_point = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()]
-            user_pos = user_point[0].geometry().asPoint()
-
-            self.extent = QgsRectangle(user_pos[0] - 197.9, user_pos[1] - 255,
-                                       user_pos[0] + 195.1, user_pos[1] + 295)
+            extnt = QgsRectangle(self.user_pos[0]-197.9, self.user_pos[1]-255, self.user_pos[0]+195.1, self.user_pos[1]+295)
         else:
-            user_pos = self.task_dict[layer_to_load]["position"]
-            self.extent = QgsRectangle(user_pos[0] - 197.9, user_pos[1] - 350,
-                                       user_pos[0] + 195.1, user_pos[1] + 50)
-
-        #zoomRectangle = QgsRectangle(pos[0] - offset, pos[1] - offset, pos[0] + offset, pos[1] + offset)
-        #self.canvas.setExtent(zoomRectangle)
-
-        #for file in layers_to_load: #TODO FIX if not many files
-        #    # combine extent of the current vector layer with the extent of the created "extent" rectangle object
-        #    self.extent.combineExtentWith(self.active_shpfiles[file][0].extent())  # Use that for merged extent of all layers
-
-        # set extent to the extent of a larger rectangle so we can see all geometries
-        self.map_canvas.setExtent(self.extent)  # Use that for merged extent of all layers
-        #self.map_canvas.setExtent(vlayer.extent())  # Use that for extent of a specific layer
-
+            event_pos = self.task_dict[layer_to_load]["position"]
+            extnt = QgsRectangle(event_pos[0]-197.9, event_pos[1]-350, event_pos[0]+195.1, event_pos[1]+50)
+        # Reset the extent
+        self.map_canvas.setExtent(extnt)
         #self.canvas.refresh() # TODO might need
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()

@@ -239,6 +239,27 @@ background-color:transparent;
 background-image: url(:/graphics/close.png);
 background-position: top left;
 border: none;
+}
+
+QPushButton#clearRouteButton{
+background-color:transparent;
+background-image: url(:/graphics/layers.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#setNetworkButton{
+background-color:transparent;
+background-image: url(:/graphics/layers.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#shortestRouteButton{
+background-color:transparent;
+background-image: url(:/graphics/layers.png);
+background-position: top left;
+border: none;
 }</string>
   </property>
   <property name="locale">
@@ -443,9 +464,120 @@ border: none;
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QPushButton" name="setNetworkButton">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>0</y>
+       <width>11</width>
+       <height>43</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>11</width>
+       <height>43</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="shortestRouteButton">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>0</y>
+       <width>11</width>
+       <height>43</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>11</width>
+       <height>43</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="clearRouteButton">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>0</y>
+       <width>11</width>
+       <height>43</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>11</width>
+       <height>43</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
     <zorder>menu_settings_btn</zorder>
     <zorder>menu_layers_btn</zorder>
     <zorder>menu_group_btn</zorder>
+    <zorder>setNetworkButton</zorder>
+    <zorder>shortestRouteButton</zorder>
+    <zorder>clearRouteButton</zorder>
    </widget>
    <widget class="QFrame" name="wth_popup">
     <property name="enabled">
@@ -1071,13 +1203,6 @@ border: none;
       <set>Qt::NoTextInteraction</set>
      </property>
     </widget>
-    <zorder>about_event_back_btn</zorder>
-    <zorder>event_title</zorder>
-    <zorder>event_footer_panel</zorder>
-    <zorder>ScreenFrame</zorder>
-    <zorder>ScreenFrame</zorder>
-    <zorder>about_event_txt</zorder>
-    <zorder>ScreenFrame</zorder>
    </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
