@@ -62,12 +62,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.tied_points = []
 
         # Development stage
-        self.setNetworkButton.hide()
+        #self.setNetworkButton.hide()
         self.shortestRouteButton.hide()
         self.clearRouteButton.hide()
         # Bind buttons to specific path finding methods
-        #self.setNetworkButton.clicked.connect(self.buildNetwork)
-        #self.shortestRouteButton.clicked.connect(self.calculateRoute)
+        self.setNetworkButton.clicked.connect(self.find_nearest_path)
+        #self.shortestRouteButton.clicked.connect(self.split_path)
         #self.clearRouteButton.clicked.connect(self.deleteRoutes)
 
         # Reference to the currently selected event
@@ -100,9 +100,15 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Set user position as point
         self.user_pos = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()][0].geometry().asPoint()
 
+        # Set user walking init state
+        self.user_walking = False
+
+        # User positioned path to joined event
+        self.user_pos_path = []
+
         # Set joined event position as point
         self.joined_event_pos = None
-        self.joined_event_pos = self.task_dict[145524]["position"]  # TODO delete, this is only for testing
+        #self.joined_event_pos = self.task_dict[145524]["position"]  # TODO delete, this is only for testing
 
         # Build icons dictionaries
         self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
@@ -134,7 +140,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.graph = builder.graph()
         # calculate the shortest path for the given origin and destination
         path = self.calculateRouteDijkstra(self.graph, self.tied_points[0], self.tied_points[1])
-        #print path
         self.draw_route(path)
 
     def draw_route(self, path):
@@ -145,7 +150,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             #print vlayer.rendererV2().symbol().symbolLayers()[0].properties()
             vlayer.startEditing()
             provider = vlayer.dataProvider()
-            provider.addAttributes([QgsField('id', QtCore.QVariant.String)])
+            #provider.addAttributes([QgsField('id', QtCore.QVariant.String)])
             vlayer.commitChanges()
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
         else:
@@ -156,15 +161,23 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # insert route line
         fet = QgsFeature()
         fet.setGeometry(QgsGeometry.fromPolyline(path))
-        fet.setAttributes(['Fastest Route'])
+        #fet.setAttributes(['Fastest Route'])
         provider.addFeatures([fet])
         provider.updateExtents()
 
         x_min, x_max = sorted((self.joined_event_pos[0], self.user_pos[0]))
         y_min, y_max = sorted((self.joined_event_pos[1], self.user_pos[1]))
-        extent = QgsRectangle(x_min-60, y_min-60, x_max+60, y_max+250)
-
+        extent = QgsRectangle(x_min-60, y_min-60, x_max+60, y_max+300)
         self.map_canvas.setExtent(extent)
+
+        #processing.runandload("qgis:createpointsalonglines", 'Routes', 7, 0, 0, None)
+        res = processing.runalg("qgis:createpointsalonglines", 'Routes', 7, 0, 0, None)
+        #self.iface.addVectorLayer(res['output'], 'my points', 'ogr')
+
+        # Update user positioned path to joined event
+        layer = QgsVectorLayer(res['output'], "points_path", "ogr")
+        self.user_pos_path = [feature.geometry().asPoint() for feature in layer.getFeatures()]
+        self.user_pos_path.reverse()
 
         if "joined_event" not in self.active_shpfiles:
             # Add the layer to the dictionary
@@ -279,6 +292,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.selected_event = None
         # Reset event timer
         self.counter_event.setText("--:--:--")
+        self.user_walking = True
 
     def load_shapefiles(self, shp_files):
         # load vector layers
@@ -333,11 +347,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Simulate new time
         self_simulated_time = datetime.today() + timedelta(0, self.seconds_passed)
 
-        if not self.menu_settings_btn.isChecked():
-            print "WTF"
-        else:
-            self.refresh_extent("user_pos")
-
         # If use has selected to view a specific event..
         if self.selected_event:
             # Event's end time
@@ -349,6 +358,18 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Update event timer
             self.counter_event.setText(event_timer)
+
+        if self.user_walking or self.menu_settings_btn.isChecked():
+            if self.user_walking:
+                self.user_pos = self.user_pos_path.pop()
+                geom = QgsGeometry.fromPoint(QgsPoint(self.user_pos))
+                self.active_shpfiles["user_pos"][0].dataProvider().changeGeometryValues({0: geom})
+
+            if self.menu_settings_btn.isChecked():
+                self.refresh_extent("user_pos")
+            else:
+                self.active_shpfiles["user_pos"][0].triggerRepaint()
+
 
     def task_parser(self, layer):
         event_dict = {}
