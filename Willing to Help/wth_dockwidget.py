@@ -24,7 +24,7 @@ in the Netherlands.
 
 #TODO clean the unused imports
 from PyQt4 import QtCore, uic
-from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton
+from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QCursor
 from qgis.core import *
 from qgis.networkanalysis import *
 from qgis.gui import *
@@ -62,11 +62,11 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.tied_points = []
 
         # Development stage
-        #self.setNetworkButton.hide()
+        #self.registerEvent_btn.hide()
         self.shortestRouteButton.hide()
         self.clearRouteButton.hide()
         # Bind buttons to specific path finding methods
-        self.setNetworkButton.clicked.connect(self.find_nearest_path)
+        self.registerEvent_btn.clicked.connect(self.event_registration)
         #self.shortestRouteButton.clicked.connect(self.split_path)
         #self.clearRouteButton.clicked.connect(self.deleteRoutes)
 
@@ -81,12 +81,14 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.menu_layers_btn.clicked.connect(self.check_events)
         self.task_list_back_btn.clicked.connect(self.close_check_events)
         self.about_event_back_btn.clicked.connect(self.close_about_event)
+        self.register_event_back_btn.clicked.connect(self.close_register_event)
 
         # Hide none init layers
         self.top_bar.hide()
         self.wth_popup.hide()
         self.task_list.hide()
         self.about_task.hide()
+        self.register_task.hide()
 
         # Dictionary of active shapefiles displayed
         self.active_shpfiles = {}
@@ -125,6 +127,14 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Show init layer
         getattr(self.pass_popup, "raise")()
+
+    def event_registration(self):
+        self.about_task.hide()
+        self.task_list.hide()
+
+        # Deactivate navigation
+        self.menu_settings_btn.toggle()
+        self.register_task.show()
 
     def find_nearest_path(self):
         # Get road_network
@@ -342,6 +352,15 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         print "Lets get down to business"
 
     def refresher(self):
+        '''
+        print self.map_canvas.extent().toString()
+        currentPos = QCursor.pos()
+        x = currentPos.x()
+        y = currentPos.y()
+        print " Mouse: %d / %d " % (x, y)
+        print self.map_canvas.mapFromGlobal(currentPos)
+        '''
+
         # Append to time fixed seconds
         self.seconds_passed += 4
         # Simulate new time
@@ -385,6 +404,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
     def close_check_events(self):
         self.task_list.hide()
+
+    def close_register_event(self):
+        self.register_task.hide()
 
     def close_about_event(self):
         self.about_task.hide()
