@@ -24,7 +24,7 @@ in the Netherlands.
 
 #TODO clean the unused imports
 from PyQt4 import QtCore, uic
-from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QCursor
+from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QListWidgetItem, QCursor
 from qgis.core import *
 from qgis.networkanalysis import *
 from qgis.gui import *
@@ -99,6 +99,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Convert tasks into a dictionary
         self.task_dict = self.task_parser(self.active_shpfiles["tasks"][0])
 
+        # Prepare system data dictionaries
+        self.skills = {}
+        self.tools = {}
+
+        # Load System Data and convert them into Dictionaries.
+        self.load_system_data()
+
         # Set user position as point
         self.user_pos = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()][0].geometry().asPoint()
 
@@ -133,7 +140,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.task_list.hide()
 
         # Deactivate navigation
-        self.menu_settings_btn.toggle()
+        if self.menu_settings_btn.isChecked():
+            self.menu_settings_btn.toggle()
         self.register_task.show()
 
     def find_nearest_path(self):
@@ -415,6 +423,35 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Reset event timer
         self.counter_event.setText("--:--:--")
         self.task_list.show()
+
+    def load_system_data(self):
+        # Prepare data about skill attributes
+        with open(os.path.dirname(os.path.abspath(__file__)) + "/DB/skills.db") as f:
+            for line in f:
+                pair = line.split(";")
+                if pair[1][-1:] == "\n":
+                    val = pair[1][:-1]
+                else:
+                    val = pair[1]
+                self.skills[int(pair[0])] = val
+
+                # Build the selection list for skills, being available in the new event registration screen.
+                item = QListWidgetItem(val)
+                self.register_skills_needed.addItem(item)
+
+        # Prepare data about tool attributes
+        with open(os.path.dirname(os.path.abspath(__file__)) + "/DB/tools.db") as f:
+            for line in f:
+                pair = line.split(";")
+                if pair[1][-1:] == "\n":
+                    val = pair[1][:-1]
+                else:
+                    val = pair[1]
+                self.tools[int(pair[0])] = val
+
+                # Build the selection list for tools, being available in the new event registration screen.
+                item = QListWidgetItem(val)
+                self.register_tools_needed.addItem(item)
 
     def login_correct(self):
         # Hide login layer
