@@ -1428,7 +1428,7 @@ Event :</string>
      <widget class="QLabel" name="register_group_missing_note">
       <property name="geometry">
        <rect>
-        <x>40</x>
+        <x>50</x>
         <y>50</y>
         <width>120</width>
         <height>30</height>
@@ -1500,7 +1500,7 @@ Event :</string>
        </datetime>
       </property>
       <property name="displayFormat">
-       <string>d/M/yyyy hh:mm:ss</string>
+       <string>d-M-yyyy hh:mm:ss</string>
       </property>
       <property name="calendarPopup">
        <bool>true</bool>
@@ -1511,7 +1511,7 @@ Event :</string>
        <rect>
         <x>0</x>
         <y>50</y>
-        <width>40</width>
+        <width>51</width>
         <height>30</height>
        </rect>
       </property>
@@ -1556,13 +1556,6 @@ Event :</string>
        <set>Qt::NoTextInteraction</set>
       </property>
      </widget>
-     <zorder>register_event</zorder>
-     <zorder>register_group_missing_note</zorder>
-     <zorder>register_counter_event</zorder>
-     <zorder>ScreenFrame</zorder>
-     <zorder>ScreenFrame</zorder>
-     <zorder>register_about_group_icon</zorder>
-     <zorder>deadline_note</zorder>
     </widget>
     <widget class="QTextEdit" name="register_event_txt">
      <property name="geometry">

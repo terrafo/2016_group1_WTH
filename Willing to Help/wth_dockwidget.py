@@ -61,6 +61,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Define the list of tied points
         self.tied_points = []
 
+        # Position of the new event
+        self.new_event_pos = []
+
+        # Bind mouse click to canvas for adding new events
+        self.map_canvas.mouseDoubleClickEvent = self.place_new_event
+
         # Development stage
         #self.registerEvent_btn.hide()
         self.shortestRouteButton.hide()
@@ -82,6 +88,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.task_list_back_btn.clicked.connect(self.close_check_events)
         self.about_event_back_btn.clicked.connect(self.close_about_event)
         self.register_event_back_btn.clicked.connect(self.close_register_event)
+        self.register_event.clicked.connect(self.register_event_init)
 
         # Hide none init layers
         self.top_bar.hide()
@@ -121,7 +128,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Build icons dictionaries
         self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
-        self.group_icons = {0: "Group_Icon0.png", 1: "Group_Icon1.png", 2: "Group_Icon2.png"}
 
         # Container Widget
         self.event_widget = QWidget()  # Set name: #self.stats_scrollarea.setObjectName("stats_scrollArea")
@@ -134,6 +140,27 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Show init layer
         getattr(self.pass_popup, "raise")()
+
+    def place_new_event(self, *args):
+        print "Placing new event", args[0].pos()
+        print args[0].pos().x(), type(args[0].pos().y())
+        points = str(self.map_canvas.extent().toString()).split(":")
+        print points
+
+        point1 = points[0].split(",")
+        point2 = points[1].split(",")
+
+        # Get the minimum and the maximum extents of x and y of the map
+        x_pos_min, x_pos_max = sorted([float(point1[0]), float(point2[0])])
+        y_pos_min, y_pos_max = sorted([float(point1[1]), float(point2[1])])
+
+        # Translate mouse position based on the canvas size (342x608)
+        translated_x = x_pos_min + ((args[0].pos().x() * (x_pos_max - x_pos_min))/342.)
+        translated_y = y_pos_max - ((args[0].pos().y() * (y_pos_max - y_pos_min))/608.)
+
+        print translated_x, translated_y
+
+
 
     def event_registration(self):
         self.about_task.hide()
@@ -253,7 +280,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             event_layout.addLayout(event_text_layout)
 
-            group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.group_icons[attr["group"]]
+            # Calculate the type of group icon
+            if self.task_dict[event]['ppl_needed'] == self.task_dict[event]['joined']:
+                members_state = "Group_Icon1.png"
+            else:
+                members_state = "Group_Icon0.png"
+
+            group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + members_state
             group_icon = QLabel()
             group_icon.setGeometry(0, 0, 34, 34)
             group_icon.setMinimumWidth(34)
@@ -278,11 +311,21 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Set current event id as the selected one
         self.selected_event = task_id
 
-        group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.group_icons[attr["group"]]
+        # Calculate the type of group icon
+        if self.task_dict[task_id]['ppl_needed'] == self.task_dict[task_id]['joined']:
+            members_state = "Group_Icon1.png"
+        else:
+            members_state = "Group_Icon0.png"
+
+        group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + members_state
         self.about_group_icon.setPixmap(QPixmap(group_icon_path))
         self.event_title.setText(attr["title"])
-        self.group_missing_note.setText('Missing {} people for a full party.'.format(attr["missing"]))
-        self.group_missing_note.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white; qproperty-alignment: AlignCenter AlignRight;}")
+
+        # Calculate how many members missing
+        self.group_missing_note.setText('Missing {} people for a full party.'.format(
+            self.task_dict[task_id]['ppl_needed'] - self.task_dict[task_id]['joined']))
+        self.group_missing_note.setStyleSheet(
+            "QLabel {font-family: Roboto; font-size: 11pt; color: white; qproperty-alignment: AlignCenter AlignRight;}")
         about_text = "<html><b>This and this and that.</b</html><br><br>" + attr["about"]
         self.about_event_txt.setText(about_text)
         try:
@@ -360,15 +403,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         print "Lets get down to business"
 
     def refresher(self):
-        '''
-        print self.map_canvas.extent().toString()
-        currentPos = QCursor.pos()
-        x = currentPos.x()
-        y = currentPos.y()
-        print " Mouse: %d / %d " % (x, y)
-        print self.map_canvas.mapFromGlobal(currentPos)
-        '''
-
         # Append to time fixed seconds
         self.seconds_passed += 4
         # Simulate new time
@@ -399,22 +433,50 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
 
     def task_parser(self, layer):
-        event_dict = {}
+        tsk_d = {}
+        # Build a dynamic reference list for the indexes of the fields
+        flds = [str(field.name()) for field in layer.pendingFields()]
+
         for feature in layer.getFeatures():
             # attrs is a list. It contains all the attribute values of this feature
             attrs = feature.attributes()
-            event_dict[attrs[0]] = {'timed': attrs[1], 'title': attrs[2], 'about': attrs[3], 'group': attrs[4],
-                                    'missing': attrs[5], 'priority': attrs[6], 'position': feature.geometry().asPoint()}
-        return event_dict
+            tsk_d[attrs[0]] = {'timed': str(attrs[flds.index('timed')]), 'title': str(attrs[flds.index('title')]),
+                               'about': str(attrs[flds.index('about')]), 'joined': attrs[flds.index('joined')],
+                               'priority': attrs[flds.index('priority')], 'ppl_needed': attrs[flds.index('ppl_needed')],
+                               'skills': str(attrs[flds.index('skills')]), 'tools': str(attrs[flds.index('tools')]),
+                               'position': feature.geometry().asPoint()}
+        return tsk_d
 
     def check_events(self):
         self.task_list.show()
+        self.register_task.hide()
+        self.about_task.hide()
 
     def close_check_events(self):
         self.task_list.hide()
 
     def close_register_event(self):
         self.register_task.hide()
+
+    def register_event_init(self):
+        print 'New event info:'
+        #NameEdit QLineEdit
+        print str(self.NameEdit.text())
+
+        #register_about_group_icon QSpinBox
+        print int(self.register_about_group_icon.text())
+
+        #register_counter_event QDateTimeEdit
+        print str(self.register_counter_event.text())
+
+        #register_event_txt QTextEdit
+        print str(self.register_event_txt.toPlainText())
+
+        #register_skills_needed QListWidget
+        print [str(x.data(1)) for x in self.register_skills_needed.selectedItems()]
+
+        #register_tools_needed QListWidget
+        print [str(x.data(1)) for x in self.register_tools_needed.selectedItems()]
 
     def close_about_event(self):
         self.about_task.hide()
@@ -437,6 +499,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
                 # Build the selection list for skills, being available in the new event registration screen.
                 item = QListWidgetItem(val)
+                item.setData(1, int(pair[0]))
                 self.register_skills_needed.addItem(item)
 
         # Prepare data about tool attributes
@@ -451,6 +514,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
                 # Build the selection list for tools, being available in the new event registration screen.
                 item = QListWidgetItem(val)
+                item.setData(1, int(pair[0]))
                 self.register_tools_needed.addItem(item)
 
     def login_correct(self):
