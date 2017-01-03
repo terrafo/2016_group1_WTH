@@ -31,7 +31,6 @@ from qgis.gui import *
 import processing
 from datetime import datetime, timedelta
 import os
-#from . import utility_functions as uf
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wth_dockwidget_base.ui'))
@@ -97,6 +96,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.about_task.hide()
         self.register_task.hide()
 
+        # A list to hold the layers that will be projected live
+        self.added_canvaslayers = []
+
         # Dictionary of active shapefiles displayed
         self.active_shpfiles = {}
 
@@ -142,11 +144,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         getattr(self.pass_popup, "raise")()
 
     def place_new_event(self, *args):
-        print "Placing new event", args[0].pos()
-        print args[0].pos().x(), type(args[0].pos().y())
-        points = str(self.map_canvas.extent().toString()).split(":")
-        print points
 
+        # Get the raw extent of the map
+        points = str(self.map_canvas.extent().toString()).split(":")
         point1 = points[0].split(",")
         point2 = points[1].split(",")
 
@@ -158,45 +158,144 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         translated_x = x_pos_min + ((args[0].pos().x() * (x_pos_max - x_pos_min))/342.)
         translated_y = y_pos_max - ((args[0].pos().y() * (y_pos_max - y_pos_min))/608.)
 
-        print translated_x, translated_y
+        # Use road_network as the ref system.
+        ref_layer = self.active_shpfiles["road_network"][0]
 
+        # Generate a temp vector layer, of a point (that will have the translated coordinates).
+        vl = QgsVectorLayer('%s?crs=EPSG:%s' % ('Point', ref_layer.crs().postgisSrid()), 'tmpPoint', "memory")
 
+        # Make the temp point invisible
+        symbol = QgsMarkerSymbolV2.createSimple({'size': '0'})
+        vl.rendererV2().setSymbol(symbol)
+
+        # Add the layer to the registry to be accessible by the processing
+        QgsMapLayerRegistry.instance().addMapLayer(vl)
+
+        pr = vl.dataProvider()
+
+        # Generate the fields
+        #pr.addAttributes([QgsField("name", QtCore.QVariant.String),
+        #                  QgsField("age", QtCore.QVariant.Int),
+        #                  QgsField("size", QtCore.QVariant.Double)])
+        #vl.updateFields()  # tell the vector layer to fetch changes from the provider
+
+        # Add the feature point
+        fet = QgsFeature()
+        fet.setGeometry(QgsGeometry.fromPoint(QgsPoint(translated_x, translated_y)))
+        # Set the position of the point based on the translated coordinates (point not on the road network)
+        #fet.setAttributes(["NewEvent", 2, 0.3])
+        pr.addFeatures([fet])
+
+        # update layer’s extent when new features have been added
+        # because change of extent in provider is not propagated to the layer
+        #vl.updateExtents() # Todo do I need?
+
+        # Find the line segment (road) closer to the temp point layer. The algorithm runs hidden
+        hub_point = processing.runalg('qgis:distancetonearesthub', vl, self.active_shpfiles["road_network"][0],
+                                      "sid", 0, 0, None)
+
+        # Get the sid of the line segment (road), found above.
+        layer = QgsVectorLayer(hub_point['OUTPUT'], "hub_point", "ogr")
+
+        # Remove the temp point layer to avoid conflicts with future 'qgis:distancetonearesthub' algorithm executions
+        QgsMapLayerRegistry.instance().removeMapLayer(vl)
+
+        # Create reference to the hub id of the road
+        hub = [feat for feat in layer.getFeatures()][0]['HubName']
+
+        # Get the line of the above sid by creating a filtered selection
+        exp = QgsExpression("sid = " + str(hub))
+        request = QgsFeatureRequest(exp)
+
+        seg = [feat for feat in self.active_shpfiles["road_network"][0].getFeatures(request)][0].geometry().asPolyline()
+
+        # Calculate closest point (from point) to line segment (road)
+        geo_point = self.point_segment_intersect(seg, (translated_x, translated_y))
+
+        # Make the temp point invisible
+        #symb = QgsMarkerSymbolV2.createSimple({'size': '2'})
+        #layer.rendererV2().setSymbol(symb)
+
+        # Add the new event to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(layer)
+
+        # If we have placed a "new event" on the map..
+        if "new_event" in self.active_shpfiles:
+            # Remove the previous new event to prevent multiple layer stacking
+            QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["new_event"][0])
+
+        # Snap new event point onto road network. Update point's geometry
+        geom = QgsGeometry.fromPoint(QgsPoint(*geo_point))
+        layer.dataProvider().changeGeometryValues({0: geom})
+
+        # Add the layer to the dictionary
+        self.active_shpfiles["new_event"] = [layer, QgsMapCanvasLayer(layer)]
+
+        if "joined_event" in self.active_shpfiles:
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event",
+                                                                            "new_event", "road_network"]]
+        else:
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in
+                                       ["user_pos", "tasks", "new_event", "road_network"]]
+
+        # provide set of layers for display on the map canvas
+        self.map_canvas.setLayerSet(self.added_canvaslayers)
+
+    # Calculate closest point (from point) to line segment
+    def point_segment_intersect(self, seg, p):
+        x1, y1 = seg[0]
+        x2, y2 = seg[1]
+        x3, y3 = p
+
+        px = x2 - x1
+        py = y2 - y1
+
+        u = ((x3 - x1) * px + (y3 - y1) * py) / float(px * px + py * py)
+
+        if u > 1:
+            u = 1
+        elif u < 0:
+            u = 0
+
+        x = x1 + u * px
+        y = y1 + u * py
+
+        return x, y
 
     def event_registration(self):
         self.about_task.hide()
         self.task_list.hide()
-
         # Deactivate navigation
         if self.menu_settings_btn.isChecked():
             self.menu_settings_btn.toggle()
         self.register_task.show()
 
     def find_nearest_path(self):
-        # Get road_network
-        self.network_layer = self.active_shpfiles["road_network"][0]
+        # Use road_network as the ref system.
+        ref_layer = self.active_shpfiles["road_network"][0]
         # get the points to be used as origin and destination
         source_points = [self.user_pos, self.joined_event_pos]
         # build the graph including these points
-        director = QgsLineVectorLayerDirector(self.network_layer, -1, '', '', '', 3)
+        director = QgsLineVectorLayerDirector(ref_layer, -1, '', '', '', 3)
         properter = QgsDistanceArcProperter()
         director.addProperter(properter)
-        builder = QgsGraphBuilder(self.network_layer.crs())
+        builder = QgsGraphBuilder(ref_layer.crs())
         self.tied_points = director.makeGraph(builder, source_points)
         self.graph = builder.graph()
         # calculate the shortest path for the given origin and destination
         path = self.calculateRouteDijkstra(self.graph, self.tied_points[0], self.tied_points[1])
-        self.draw_route(path)
+        self.draw_route(path, ref_layer)
 
-    def draw_route(self, path):
+    def draw_route(self, path, ref_layer):
         if not "joined_event" in self.active_shpfiles:
-            vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', self.network_layer.crs().postgisSrid()), 'Routes', "memory")
+            vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', ref_layer.crs().postgisSrid()), 'Routes', "memory")
             symbol = QgsLineSymbolV2.createSimple({'line_width': '1'})
             vlayer.rendererV2().setSymbol(symbol)
             #print vlayer.rendererV2().symbol().symbolLayers()[0].properties()
-            vlayer.startEditing()
+            #vlayer.startEditing()
             provider = vlayer.dataProvider()
             #provider.addAttributes([QgsField('id', QtCore.QVariant.String)])
-            vlayer.commitChanges()
+            #vlayer.commitChanges()
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
         else:
             provider = self.active_shpfiles["joined_event"][0].dataProvider()
@@ -228,10 +327,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Add the layer to the dictionary
             self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
-            added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event", "road_network"]]
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event", "road_network"]]
 
             # provide set of layers for display on the map canvas
-            self.map_canvas.setLayerSet(added_canvaslayers)
+            self.map_canvas.setLayerSet(self.added_canvaslayers)
 
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
@@ -368,10 +467,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # add the layer to the registry
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
-        added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]
+        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]
 
         # provide set of layers for display on the map canvas
-        self.map_canvas.setLayerSet(added_canvaslayers)
+        self.map_canvas.setLayerSet(self.added_canvaslayers)
 
     def refresh_extent(self, layer_to_load):
         if layer_to_load == "user_pos":
@@ -422,6 +521,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         if self.user_walking or self.menu_settings_btn.isChecked():
             if self.user_walking:
+                # Get new user position from the path queue
                 self.user_pos = self.user_pos_path.pop()
                 geom = QgsGeometry.fromPoint(QgsPoint(self.user_pos))
                 self.active_shpfiles["user_pos"][0].dataProvider().changeGeometryValues({0: geom})
@@ -459,24 +559,48 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.register_task.hide()
 
     def register_event_init(self):
-        print 'New event info:'
-        #NameEdit QLineEdit
-        print str(self.NameEdit.text())
+        new_event_layer = self.active_shpfiles["new_event"][0]
+        task_layer = self.active_shpfiles["tasks"][0]
+        pr = task_layer.dataProvider()
 
-        #register_about_group_icon QSpinBox
-        print int(self.register_about_group_icon.text())
+        # Get the number of features to use as the sid
+        sid = task_layer.featureCount()
 
-        #register_counter_event QDateTimeEdit
-        print str(self.register_counter_event.text())
+        # Get the geometry of the new event layer to use as the correct one
+        new_event_pos_geom = [feature.geometry() for feature in new_event_layer.getFeatures()][0]
 
-        #register_event_txt QTextEdit
-        print str(self.register_event_txt.toPlainText())
+        # Add the feature point
+        fet = QgsFeature()
+        fet.setGeometry(new_event_pos_geom)
 
-        #register_skills_needed QListWidget
-        print [str(x.data(1)) for x in self.register_skills_needed.selectedItems()]
+        # Prepare the data to fill the new event
+        edit_event_attr_bank = {'timed': str(self.register_counter_event.text()), 'title': str(self.NameEdit.text()),
+                                'about': str(self.register_event_txt.toPlainText()), 'priority': 3,
+                                'ppl_needed': int(self.register_about_group_icon.text()), 'joined': 0, 'sid': sid,
+                                'skills': str([x.data(1) for x in self.register_skills_needed.selectedItems()]),
+                                'tools': str([x.data(1) for x in self.register_tools_needed.selectedItems()])}
 
-        #register_tools_needed QListWidget
-        print [str(x.data(1)) for x in self.register_tools_needed.selectedItems()]
+        # Get all field names (in a correct order), of the tasks layer
+        fields = [str(field.name()) for field in self.active_shpfiles["tasks"][0].pendingFields()]
+
+        attrs = []
+
+        # Add in the correct order each attribute, based on the attr bank
+        for field in fields:
+            attrs.append(edit_event_attr_bank[field])
+
+        # Store the new feature with its attributes. It will automatically updated on the task layer.
+        fet.setAttributes(attrs)
+        pr.addFeatures([fet])
+
+        # Remove the previous new event to prevent multiple layer stacking
+        QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["new_event"][0])
+
+        # Add the layer to the dictionary
+        del self.active_shpfiles["new_event"]
+
+        # Re-render the road network (along with everything else)
+        self.active_shpfiles["road_network"][0].triggerRepaint()
 
     def close_about_event(self):
         self.about_task.hide()
