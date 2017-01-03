@@ -1,12 +1,12 @@
-1;Sledgehammer
-2;Drill
-3;Rope
-4;Electrical cord
-5;Flashlight
-6;Volt/Ohmmeter
-7;Socket Wrench Set
-8;Adjustable Wrench
-9;Pipe Wrench
+01;Sledgehammer
+02;Drill
+03;Rope
+04;Electrical cord
+05;Flashlight
+06;Volt/Ohmmeter
+07;Socket Wrench Set
+08;Adjustable Wrench
+09;Pipe Wrench
 10;Circular Saw
 11;Bow Saw
 12;Jigsaw
