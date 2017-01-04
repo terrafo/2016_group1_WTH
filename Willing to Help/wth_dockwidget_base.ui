@@ -114,8 +114,6 @@ font-size: 14pt;
 border: none;
 }
 
-
-
 QSpinBox#register_about_group_icon{
 background-color:transparent;
 color: black;
@@ -286,23 +284,37 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#clearRouteButton{
+QPushButton#locate_me{
 background-color:transparent;
-background-image: url(:/graphics/layers.png);
+background-image: url(:/graphics/center_off.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#locate_me:checked{
+background-color:transparent;
+background-image: url(:/graphics/center.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#locate_me:hover{
+background-color:transparent;
+background-image: url(:/graphics/center_clicked.png);
 background-position: top left;
 border: none;
 }
 
 QPushButton#registerEvent_btn{
 background-color:transparent;
-background-image: url(:/graphics/layers.png);
+background-image: url(:/graphics/placeholder.png);
 background-position: top left;
 border: none;
 }
 
-QPushButton#shortestRouteButton{
+QPushButton#registerEvent_btn:hover{
 background-color:transparent;
-background-image: url(:/graphics/layers.png);
+background-image: url(:/graphics/placeholder_clicked.png);
 background-position: top left;
 border: none;
 }</string>
@@ -401,10 +413,10 @@ border: none;
     <widget class="QPushButton" name="menu_group_btn">
      <property name="geometry">
       <rect>
-       <x>230</x>
-       <y>8</y>
-       <width>51</width>
-       <height>51</height>
+       <x>255</x>
+       <y>15</y>
+       <width>38</width>
+       <height>38</height>
       </rect>
      </property>
      <property name="font">
@@ -437,10 +449,10 @@ border: none;
     <widget class="QPushButton" name="menu_layers_btn">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>12</y>
-       <width>11</width>
-       <height>43</height>
+       <x>315</x>
+       <y>15</y>
+       <width>10</width>
+       <height>38</height>
       </rect>
      </property>
      <property name="font">
@@ -473,10 +485,10 @@ border: none;
     <widget class="QPushButton" name="menu_settings_btn">
      <property name="geometry">
       <rect>
-       <x>28</x>
-       <y>18</y>
-       <width>42</width>
-       <height>31</height>
+       <x>20</x>
+       <y>15</y>
+       <width>31</width>
+       <height>38</height>
       </rect>
      </property>
      <property name="font">
@@ -503,7 +515,7 @@ border: none;
       </size>
      </property>
      <property name="checkable">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -512,10 +524,10 @@ border: none;
     <widget class="QPushButton" name="registerEvent_btn">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>0</y>
-       <width>11</width>
-       <height>43</height>
+       <x>200</x>
+       <y>15</y>
+       <width>32</width>
+       <height>38</height>
       </rect>
      </property>
      <property name="font">
@@ -545,13 +557,13 @@ border: none;
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="shortestRouteButton">
+    <widget class="QPushButton" name="locate_me">
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>0</y>
-       <width>11</width>
-       <height>43</height>
+       <x>75</x>
+       <y>15</y>
+       <width>38</width>
+       <height>38</height>
       </rect>
      </property>
      <property name="font">
@@ -577,41 +589,8 @@ border: none;
        <height>43</height>
       </size>
      </property>
-     <property name="flat">
+     <property name="checkable">
       <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="clearRouteButton">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>0</y>
-       <width>11</width>
-       <height>43</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Roboto</family>
-      </font>
-     </property>
-     <property name="cursor">
-      <cursorShape>CrossCursor</cursorShape>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>11</width>
-       <height>43</height>
-      </size>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -621,8 +600,7 @@ border: none;
     <zorder>menu_layers_btn</zorder>
     <zorder>menu_group_btn</zorder>
     <zorder>registerEvent_btn</zorder>
-    <zorder>shortestRouteButton</zorder>
-    <zorder>clearRouteButton</zorder>
+    <zorder>locate_me</zorder>
    </widget>
    <widget class="QFrame" name="wth_popup">
     <property name="enabled">

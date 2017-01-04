@@ -7,7 +7,6 @@
     <file>graphics/wth_popup_yes.png</file>
     <file>graphics/pass_popup.png</file>
     <file>graphics/pass_popup_text.png</file>
-    <file>graphics/group.png</file>
     <file>graphics/layers.png</file>
     <file>graphics/settings.png</file>
     <file>graphics/low_background.png</file>
@@ -17,14 +16,21 @@
     <file>graphics/EventPriority3.png</file>
     <file>graphics/Group_Icon0.png</file>
     <file>graphics/Group_Icon1.png</file>
+    <file>graphics/group.png</file>
+    <file>graphics/group_clicked.png</file>
     <file>graphics/settings_clicked.png</file>
     <file>graphics/layers_clicked.png</file>
-    <file>graphics/group_clicked.png</file>
     <file>graphics/close_clicked.png</file>
     <file>graphics/wth_popup_yes_clicked.png</file>
     <file>graphics/wth_popup_no_clicked.png</file>
     <file>graphics/pass_popup_text_checked.png</file>
     <file>graphics/button_background.png</file>
     <file>graphics/thin_button_background.png</file>
+    <file>graphics/center_off.png</file>
+    <file>graphics/center.png</file>
+    <file>graphics/center_clicked.png</file>
+    <file>graphics/new_placeholder.png</file>
+    <file>graphics/placeholder.png</file>
+    <file>graphics/placeholder_clicked.png</file>
   </qresource>
 </RCC>
