@@ -32,5 +32,7 @@
     <file>graphics/new_placeholder.png</file>
     <file>graphics/placeholder.png</file>
     <file>graphics/placeholder_clicked.png</file>
+    <file>graphics/thin_button_background_correct.png</file>
+    <file>graphics/thin_button_background_false.png</file>
   </qresource>
 </RCC>

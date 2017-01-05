@@ -69,9 +69,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Bind mouse click to canvas for adding new events
         self.map_canvas.mouseDoubleClickEvent = self.place_new_event
 
-        # Development stage
-        #self.registerEvent_btn.hide()
-
         # Bind buttons to specific path finding methods
         self.registerEvent_btn.clicked.connect(self.event_registration)
         #self.menu_settings_btn.clicked.connect()  # Todo user edit
@@ -82,7 +79,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
-        #self.locate_me.setStyleSheet("QPushButton#locate_me:checked {background: transparent;}")
 
         self.menu_layers_btn.clicked.connect(self.check_events)
         self.task_list_back_btn.clicked.connect(self.close_check_events)
@@ -103,11 +99,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Dictionary of active shapefiles displayed
         self.active_shpfiles = {}
 
-        # Load specific classes of layers
-        self.load_shapefiles(["user_pos", "tasks", "road_network"])
-
-        # Convert tasks into a dictionary
-        self.task_dict = self.task_parser(self.active_shpfiles["tasks"][0])
+        # Define a dictionary to refer to each different user as a distinct feature object of a shapefile
+        self.user_features = {}
 
         # Prepare system data dictionaries
         self.skills = {}
@@ -115,9 +108,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Load System Data and convert them into Dictionaries.
         self.load_system_data()
-
-        # Set user position as point
-        self.user_pos = [feat for feat in self.active_shpfiles["user_pos"][0].getFeatures()][0].geometry().asPoint()
 
         # Set user walking init state
         self.user_walking = False
@@ -127,22 +117,28 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Set joined event position as point
         self.joined_event_pos = None
-        #self.joined_event_pos = self.task_dict[145524]["position"]  # TODO delete, this is only for testing
 
         # Build icons dictionaries
         self.event_icons = {1: "EventPriority1.png", 2: "EventPriority2.png", 3: "EventPriority3.png"}
 
-        # Container Widget
-        self.event_widget = QWidget()  # Set name: #self.stats_scrollarea.setObjectName("stats_scrollArea")
-        self.event_widget.setStyleSheet("QWidget{background: transparent}")
+        # Show init layer
+        getattr(self.pass_popup, "raise")()
+
+    def protected_init(self):
+        # Load specific classes of layers
+        self.load_shapefiles()
+
+        # Convert tasks into a dictionary
+        self.task_dict = self.task_parser(self.active_shpfiles["tasks"][0])
+
+        # Set user position as point
+        self.user_pos = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0].geometry().asPoint()
 
         # Refresh extent to user position
         self.refresh_extent("user_pos")
+
         # Refresh event list
         self.refresh_event_list()
-
-        # Show init layer
-        getattr(self.pass_popup, "raise")()
 
     def place_new_event(self, *args):
         # If user is in the "adding a new event" section, proceed.
@@ -174,12 +170,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             QgsMapLayerRegistry.instance().addMapLayer(vl)
 
             pr = vl.dataProvider()
-
-            # Generate the fields
-            #pr.addAttributes([QgsField("name", QtCore.QVariant.String),
-            #                  QgsField("age", QtCore.QVariant.Int),
-            #                  QgsField("size", QtCore.QVariant.Double)])
-            #vl.updateFields()  # tell the vector layer to fetch changes from the provider
 
             # Add the feature point
             fet = QgsFeature()
@@ -232,14 +222,17 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.active_shpfiles["new_event"] = [layer, QgsMapCanvasLayer(layer)]
 
             if "joined_event" in self.active_shpfiles:
-                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event",
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "joined_event",
                                                                                 "new_event", "road_network"]]
             else:
                 self.added_canvaslayers = [self.active_shpfiles[x][1] for x in
-                                           ["user_pos", "tasks", "new_event", "road_network"]]
+                                           ["user_logged", "tasks", "new_event", "road_network"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
+
+            # Set the flag of the new_event's registration button, to "Ready"
+            self.register_event.setStyleSheet("QPushButton#register_event:hover {background-image: url(:/graphics/thin_button_background_correct.png);}")
 
     def clear_last_new_event(self):
         # If we have placed a "new event" on the map..
@@ -258,7 +251,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         x1, y1 = seg[0]
         x2, y2 = seg[1]
         x3, y3 = p
-
         px = x2 - x1
         py = y2 - y1
 
@@ -275,6 +267,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         return x, y
 
     def event_registration(self):
+        # Set the flag of the new_event's registration button, to "Not Ready"
+        self.register_event.setStyleSheet(
+            "QPushButton#register_event:hover {background-image: url(:/graphics/thin_button_background_false.png);}")
+
         # Set the "adding a new event" state to True
         self.adding_new_event = True
 
@@ -301,16 +297,16 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         path = self.calculateRouteDijkstra(self.graph, self.tied_points[0], self.tied_points[1])
         self.draw_route(path, ref_layer)
 
-    def draw_route(self, path, ref_layer):
+    def draw_route(self, path, ref_lay):
         if not "joined_event" in self.active_shpfiles:
-            vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', ref_layer.crs().postgisSrid()), 'Routes', "memory")
+            vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', ref_lay.crs().postgisSrid()), 'Routes', "memory")
+
+            # Set the symbol
             symbol = QgsLineSymbolV2.createSimple({'line_width': '1'})
             vlayer.rendererV2().setSymbol(symbol)
-            #print vlayer.rendererV2().symbol().symbolLayers()[0].properties()
-            #vlayer.startEditing()
+
             provider = vlayer.dataProvider()
-            #provider.addAttributes([QgsField('id', QtCore.QVariant.String)])
-            #vlayer.commitChanges()
+
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
         else:
             provider = self.active_shpfiles["joined_event"][0].dataProvider()
@@ -329,7 +325,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         extent = QgsRectangle(x_min-60, y_min-60, x_max+60, y_max+300)
         self.map_canvas.setExtent(extent)
 
-        #processing.runandload("qgis:createpointsalonglines", 'Routes', 7, 0, 0, None)
         res = processing.runalg("qgis:createpointsalonglines", 'Routes', 7, 0, 0, None)
         #self.iface.addVectorLayer(res['output'], 'my points', 'ogr')
 
@@ -342,7 +337,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Add the layer to the dictionary
             self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
-            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_pos", "tasks", "joined_event", "road_network"]]
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                "user_logged", "tasks", "joined_event", "road_network"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -369,6 +365,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         return points
 
     def refresh_event_list(self):
+        # Container Widget
+        event_widget = QWidget()
+        event_widget.setStyleSheet("QWidget{background: transparent}")
+
         #Layout of Container Widget
         layout = QVBoxLayout(self)
         for event, attr in self.task_dict.iteritems():
@@ -410,8 +410,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             layout.addLayout(event_layout)
 
-        self.event_widget.setLayout(layout)
-        self.events_scrollArea.setWidget(self.event_widget)
+        event_widget.setLayout(layout)
+        self.events_scrollArea.setWidget(event_widget)
 
     def event_button_generator(self, task_id, attr):
         btn = QPushButton(attr["title"])
@@ -469,9 +469,45 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.counter_event.setText("--:--:--")
         self.user_walking = True
 
-    def load_shapefiles(self, shp_files):
-        # load vector layers
-        for layer_class in shp_files:
+    def load_shapefiles(self):
+
+        # Get the complete user layer
+        users_layer = QgsVectorLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/users.shp",
+                                     "all_user", "ogr")
+
+        # Update the dictionary refering to each different user as a distinct feature object of a shapefile
+        for feature in users_layer.getFeatures():
+            self.user_features[feature['UseID']] = feature
+
+        # Create a logged-in user specific vector user
+        user_layer = QgsVectorLayer('%s?crs=EPSG:%s' % ('Point', users_layer.crs().postgisSrid()), 'user', "memory")
+
+        prov = user_layer.dataProvider()
+
+        # Generate the fields
+        prov.addAttributes([field for field in users_layer.pendingFields()])
+
+        # Tell the vector layer to fetch changes from the provider
+        user_layer.updateFields()
+
+        # Add the user feature into the provider/layer
+        prov.addFeatures([self.user_features[self.user_id]])
+
+        # Make the temp point invisible
+        symbol = QgsMarkerSymbolV2.createSimple({'size': '3'})
+        user_layer.rendererV2().setSymbol(symbol)
+
+        # Delete the feature of the logged in user. That user became a seperate vlayer.
+        del self.user_features[self.user_id]
+
+        # Add the layer to the dictionary of active shapefiles
+        self.active_shpfiles["user_logged"] = [user_layer, QgsMapCanvasLayer(user_layer)]
+
+        # add the layer to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(user_layer)
+
+        # load the rest of the vector layers
+        for layer_class in ["tasks", "road_network"]:
             # create vector layer object
             vlayer = QgsVectorLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/" +
                                     layer_class + ".shp", layer_class, "ogr")
@@ -482,7 +518,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # add the layer to the registry
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
-        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in shp_files]
+        # Load the corresponding Shapefiles
+        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "road_network"]]
 
         # provide set of layers for display on the map canvas
         self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -493,9 +530,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         else:
             event_pos = self.task_dict[layer_to_load]["position"]
             extnt = QgsRectangle(event_pos[0]-197.9, event_pos[1]-350, event_pos[0]+195.1, event_pos[1]+50)
+
         # Reset the extent
         self.map_canvas.setExtent(extnt)
-        #self.canvas.refresh() # TODO might need
+
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
 
@@ -523,7 +561,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self_simulated_time = datetime.today() + timedelta(0, self.seconds_passed)
 
         # If use has selected to view a specific event..
-        if self.selected_event:
+        if self.selected_event != None:
             # Event's end time
             e = datetime.strptime(self.task_dict[self.selected_event]["timed"], '%Y-%m-%d %H:%M:%S')
 
@@ -536,15 +574,34 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         if self.user_walking or self.locate_me.isChecked():
             if self.user_walking:
-                # Get new user position from the path queue
-                self.user_pos = self.user_pos_path.pop()
-                geom = QgsGeometry.fromPoint(QgsPoint(self.user_pos))
-                self.active_shpfiles["user_pos"][0].dataProvider().changeGeometryValues({0: geom})
+
+                #Get the ID of the user feature
+                fid = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0].id()
+
+                # Try to get new user position from the path queue
+                try:
+                    self.user_pos = self.user_pos_path.pop()
+                    geom = QgsGeometry.fromPoint(QgsPoint(self.user_pos))
+                    self.active_shpfiles["user_logged"][0].dataProvider().changeGeometryValues({fid: geom})
+                except:
+                    # User arrived to the event. Terminate path
+                    self.user_walking = False
+
+                    # Remove the previous new event to prevent multiple layer stacking
+                    QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["joined_event"][0])
+
+                    # Delete the layer from the dictionary
+                    del self.active_shpfiles["joined_event"]
+
+                    # Re-render the road network (along with everything else)
+                    self.active_shpfiles["road_network"][0].triggerRepaint()
+
+
 
             if self.locate_me.isChecked():
                 self.refresh_extent("user_pos")
             else:
-                self.active_shpfiles["user_pos"][0].triggerRepaint()
+                self.active_shpfiles["road_network"][0].triggerRepaint()
 
 
     def task_parser(self, layer):
@@ -582,42 +639,62 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.clear_last_new_event()
 
     def register_event_init(self):
-        new_event_layer = self.active_shpfiles["new_event"][0]
-        task_layer = self.active_shpfiles["tasks"][0]
-        pr = task_layer.dataProvider()
+        # Check if user has placed a new event
+        if "new_event" in self.active_shpfiles:
+            new_event_layer = self.active_shpfiles["new_event"][0]
+            task_layer = self.active_shpfiles["tasks"][0]
+            pr = task_layer.dataProvider()
 
-        # Get the number of features to use as the sid
-        sid = task_layer.featureCount()
+            # Get the number of features to use as the sid
+            sid = int(task_layer.featureCount())
 
-        # Get the geometry of the new event layer to use as the correct one
-        new_event_pos_geom = [feature.geometry() for feature in new_event_layer.getFeatures()][0]
+            # Get the geometry of the new event layer to use as the correct one
+            new_event_pos_geom = [feature.geometry() for feature in new_event_layer.getFeatures()][0]
 
-        # Add the feature point
-        fet = QgsFeature()
-        fet.setGeometry(new_event_pos_geom)
+            # Add the feature point
+            fet = QgsFeature()
+            fet.setGeometry(new_event_pos_geom)
 
-        # Prepare the data to fill the new event
-        edit_event_attr_bank = {'timed': str(self.register_counter_event.text()), 'title': str(self.NameEdit.text()),
-                                'about': str(self.register_event_txt.toPlainText()), 'priority': 3,
-                                'ppl_needed': int(self.register_about_group_icon.text()), 'joined': 0, 'sid': sid,
-                                'skills': str([x.data(1) for x in self.register_skills_needed.selectedItems()]),
-                                'tools': str([x.data(1) for x in self.register_tools_needed.selectedItems()])}
+            # Prepare the data into a temporal dict, to fill the new event
+            edit_event_attr_bank = {'timed': str(self.register_counter_event.text()), 'title': str(self.NameEdit.text()),
+                                    'about': str(self.register_event_txt.toPlainText()), 'priority': 3,
+                                    'ppl_needed': int(self.register_about_group_icon.text()), 'joined': 0, 'sid': sid,
+                                    'skills': str([x.data(1) for x in self.register_skills_needed.selectedItems()]),
+                                    'tools': str([x.data(1) for x in self.register_tools_needed.selectedItems()])}
 
-        # Get all field names (in a correct order), of the tasks layer
-        fields = [str(field.name()) for field in self.active_shpfiles["tasks"][0].pendingFields()]
+            # Get all field names (in a correct order), of the tasks layer
+            fields = [str(field.name()) for field in self.active_shpfiles["tasks"][0].pendingFields()]
 
-        attrs = []
+            attrs = []
 
-        # Add in the correct order each attribute, based on the attr bank
-        for field in fields:
-            attrs.append(edit_event_attr_bank[field])
+            # Add in the correct order each attribute, based on the attr bank
+            for field in fields:
+                attrs.append(edit_event_attr_bank[field])
 
-        # Store the new feature with its attributes. It will automatically updated on the task layer.
-        fet.setAttributes(attrs)
-        pr.addFeatures([fet])
+            # Store the new feature with its attributes. It will automatically updated on the task layer.
+            fet.setAttributes(attrs)
+            pr.addFeatures([fet])
 
-        # Clear the previously placed new_event (if there is one) from the map
-        self.clear_last_new_event()
+            # Clear the previously placed new_event (if there is one) from the map
+            self.clear_last_new_event()
+
+            # Add the position to the previously created temporal dict
+            edit_event_attr_bank['position'] = new_event_pos_geom.asPoint()
+
+            # Remove the unusable "sid" key from the dictionary
+            del edit_event_attr_bank['sid']
+
+            # Refresh the dictionary based on the new event
+            self.task_dict[sid] = edit_event_attr_bank
+
+            # Refresh event list
+            self.refresh_event_list()
+
+            # Call the handler of the new_event's registration panel exit
+            self.close_register_event()
+
+            # Redraw the widget on the canvas
+            self.canvas.refresh()  # todo needed?
 
     def close_about_event(self):
         self.about_task.hide()
@@ -659,10 +736,16 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                 self.register_tools_needed.addItem(item)
 
     def login_correct(self):
+        # Set the user based on the credentials
+        self.user_id = int(self.user_selection.text())
+
+        # Proceed to the protected init (User has logged in successfully)
+        self.protected_init()
+
         # Hide login layer
         self.pass_popup.hide()
 
         # Show next layer
         self.wth_popup.show()
-        getattr(self.wth_popup, "raise")()  #getattr(self.pass_popup, "lower")()  # Might be the opposite
+        getattr(self.wth_popup, "raise")()
         print "done"
