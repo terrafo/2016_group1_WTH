@@ -34,5 +34,53 @@
     <file>graphics/placeholder_clicked.png</file>
     <file>graphics/thin_button_background_correct.png</file>
     <file>graphics/thin_button_background_false.png</file>
+    <file>graphics/tools_panel.png</file>
+    <file>graphics/skills_panel.png</file>
+    <file>graphics/close_blue_clicked.png</file>
+    <file>graphics/close_green_clicked.png</file>
+    <file>graphics/tools/1.png</file>
+    <file>graphics/tools/1_off.png</file>
+    <file>graphics/tools/2.png</file>
+    <file>graphics/tools/2_off.png</file>
+    <file>graphics/tools/3.png</file>
+    <file>graphics/tools/3_off.png</file>
+    <file>graphics/tools/4.png</file>
+    <file>graphics/tools/4_off.png</file>
+    <file>graphics/tools/5.png</file>
+    <file>graphics/tools/5_off.png</file>
+    <file>graphics/tools/6.png</file>
+    <file>graphics/tools/6_off.png</file>
+    <file>graphics/tools/7.png</file>
+    <file>graphics/tools/7_off.png</file>
+    <file>graphics/tools/8.png</file>
+    <file>graphics/tools/8_off.png</file>
+    <file>graphics/tools/9.png</file>
+    <file>graphics/tools/9_off.png</file>
+    <file>graphics/tools/10.png</file>
+    <file>graphics/tools/10_off.png</file>
+    <file>graphics/tools/11.png</file>
+    <file>graphics/tools/11_off.png</file>
+    <file>graphics/tools/12.png</file>
+    <file>graphics/tools/12_off.png</file>
+    <file>graphics/tools/13.png</file>
+    <file>graphics/tools/13_off.png</file>
+    <file>graphics/tools/14.png</file>
+    <file>graphics/tools/14_off.png</file>
+    <file>graphics/tools/15.png</file>
+    <file>graphics/tools/15_off.png</file>
+    <file>graphics/tools/16.png</file>
+    <file>graphics/tools/16_off.png</file>
+    <file>graphics/tools/17.png</file>
+    <file>graphics/tools/17_off.png</file>
+    <file>graphics/tools/18.png</file>
+    <file>graphics/tools/18_off.png</file>
+    <file>graphics/tools/19.png</file>
+    <file>graphics/tools/19_off.png</file>
+    <file>graphics/tools/20.png</file>
+    <file>graphics/tools/20_off.png</file>
+    <file>graphics/tools/21.png</file>
+    <file>graphics/tools/21_off.png</file>
+    <file>graphics/tools/22.png</file>
+    <file>graphics/tools/22_off.png</file>
   </qresource>
 </RCC>

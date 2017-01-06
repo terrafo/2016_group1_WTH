@@ -24,7 +24,8 @@ in the Netherlands.
 
 #TODO clean the unused imports
 from PyQt4 import QtCore, uic
-from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QListWidgetItem, QCursor
+from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QListWidgetItem, \
+    QGridLayout
 from qgis.core import *
 from qgis.networkanalysis import *
 from qgis.gui import *
@@ -57,6 +58,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Define the graph
         self.graph = QgsGraph()
+
         # Define the list of tied points
         self.tied_points = []
 
@@ -71,12 +73,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Bind buttons to specific path finding methods
         self.registerEvent_btn.clicked.connect(self.event_registration)
-        #self.menu_settings_btn.clicked.connect()  # Todo user edit
 
-        # Reference to the currently selected event
-        self.selected_event = None
+        self.menu_settings_btn.clicked.connect(self.show_tools_panel)
+        self.menu_group_btn.clicked.connect(self.show_skills_panel)
+        self.skills_list_back_btn.clicked.connect(self.hide_skills_panel)
+        self.tools_list_back_btn.clicked.connect(self.hide_tools_panel)
 
-        # Set Button connections
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
 
@@ -92,6 +94,11 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.task_list.hide()
         self.about_task.hide()
         self.register_task.hide()
+        self.skills_list.hide()
+        self.tools_list.hide()
+
+        # Reference to the currently selected event
+        self.selected_event = None
 
         # A list to hold the layers that will be projected live
         self.added_canvaslayers = []
@@ -139,6 +146,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Refresh event list
         self.refresh_event_list()
+
+        # Refresh user tools list
+        self.tools_list_loader()
 
     def place_new_event(self, *args):
         # If user is in the "adding a new event" section, proceed.
@@ -552,7 +562,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.menu_group_btn.show()
         self.menu_layers_btn.show()
         self.locate_me.show()
-        print "Lets get down to business"
 
     def refresher(self):
         # Append to time fixed seconds
@@ -735,6 +744,140 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                 item.setData(1, int(pair[0]))
                 self.register_tools_needed.addItem(item)
 
+    def tools_list_loader(self):
+        # Container Widget
+        tools_widget_panel = QWidget()
+        tools_widget_panel.setStyleSheet("QWidget{background: transparent}")
+
+        #Layout of Container Widget
+        tools_widget_grid = QGridLayout(self)
+
+        # Create a counter to track the current iteration
+        iteration_tracker = 1
+
+        # Create a counter to track the current row
+        row = 1
+
+        for tool_id, name in self.tools.iteritems():
+
+            tool_framebox = QVBoxLayout(self)
+
+            # Place the icon that will be generated dynamically
+            tool_framebox.addWidget(self.tools_checkbutton_generator(tool_id))
+
+            # Make the name shorter in case needed.
+            if len(name) > 11:
+                name = name[:11]+".."
+
+            tool_title = QLabel(name)
+            tool_title.setStyleSheet("QLabel {font-family: Roboto; font-size: 9pt; color: white; qproperty-alignment: AlignCenter;}")
+            tool_title.setMaximumWidth(81)
+
+            # Place Title under the icon
+            tool_framebox.addWidget(tool_title)
+
+            # Make proper calculations for proper slot indexing
+            col = iteration_tracker % 3
+            if col == 0:
+                col = 3
+                tools_widget_grid.addLayout(tool_framebox, row, col)
+                row += 1
+            else:
+                tools_widget_grid.addLayout(tool_framebox, row, col)
+
+            #Update iteration trackers
+            iteration_tracker += 1
+
+        tools_widget_panel.setLayout(tools_widget_grid)
+        self.tools_scrollArea.setWidget(tools_widget_panel)
+
+    def tools_checkbutton_generator(self, tool_id):
+
+        btn = QPushButton()
+        name = "tool_btn_" + str(tool_id)
+        btn.setObjectName(name)
+        btn.setCheckable(True)
+
+        # Get tools list (from string to int)
+        int_tools_list = self.list_str2int("tools")
+
+        # Check if user has this tool:
+        if tool_id in int_tools_list:
+            btn.setChecked(True)
+        else:
+            btn.setChecked(False)
+
+        # Set the styling for each check_button
+        btn.setStyleSheet(
+            "QPushButton#" + name + " {background-image: url(:/graphics/tools/" + str(tool_id) + "_off.png);}\n\n" +
+            "QPushButton#" + name + ":checked {background-image: url(:/graphics/tools/" + str(tool_id) + ".png);}")
+
+        # Set the size of the button
+        btn.setMinimumHeight(81)
+
+        # Connect checkbox to list handler
+        btn.toggled.connect(lambda: self.update_list("tools", tool_id, btn.isChecked()))
+
+        return btn
+
+    # Gets a list of strings and returns a list of integers
+    def list_str2int(self, str_list):
+        # Get the corresponding list
+        str_lst = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0][str_list][1:-1].split(", ")
+        return map(int, str_lst)
+
+    # Update the corresponding list based on the chosen id of the object
+    def update_list(self, list_type, sid, state):
+        # Get the feature (logged user)
+        feat = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0]
+
+        # If check state is True, it means we are adding an object
+        if state:
+            old_list = feat[list_type][:-1]
+
+            # If list did not have any objects, then just add a number without a comma
+            if old_list == "[":
+                # Add to the list the new object
+                new_object_list = old_list + str(sid) + "]"
+
+            # Else, add the comma because list was not empty
+            else:
+                # Add to the list the new object
+                new_object_list = old_list + ", " + str(sid) + "]"
+
+        # If not, then we should remove the object from the list
+        else:
+            # Get tools list (from string to int)
+            int_tools_list = self.list_str2int(list_type)
+
+            # Remove the object id
+            int_tools_list.remove(sid)
+
+            # Convert the list of integers back to list of strings
+            new_object_list = str(int_tools_list)
+
+        # Update the list
+        with edit(self.active_shpfiles["user_logged"][0]):
+            f = self.active_shpfiles["user_logged"][0].getFeatures().next()
+            f[list_type] = new_object_list
+            self.active_shpfiles["user_logged"][0].updateFeature(f)
+
+    def hide_skills_panel(self):
+
+        self.skills_list.hide()
+
+    def hide_tools_panel(self):
+
+        self.tools_list.hide()
+
+    def show_skills_panel(self):
+
+        self.skills_list.show()
+
+    def show_tools_panel(self):
+
+        self.tools_list.show()
+
     def login_correct(self):
         # Set the user based on the credentials
         self.user_id = int(self.user_selection.text())
@@ -748,4 +891,3 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Show next layer
         self.wth_popup.show()
         getattr(self.wth_popup, "raise")()
-        print "done"

@@ -66,6 +66,14 @@ QFrame#pass_popup{
 	background-image: url(:/graphics/pass_popup.png);
 }
 
+QFrame#skills_list{
+	background-image: url(:/graphics/skills_panel.png);
+}
+
+QFrame#tools_list{
+	background-image: url(:/graphics/tools_panel.png);
+}
+
 QFrame#top_bar{
 background-color:rgb(110, 110, 110);
 }
@@ -186,13 +194,6 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#task_list_back_btn:hover{
-background-color:transparent;
-background-image: url(:/graphics/close_clicked.png);
-background-position: top left;
-border: none;
-}
-
 QPushButton#pushButton_no:hover{
 background-color:transparent;
 background-image: url(:/graphics/wth_popup_no_clicked.png);
@@ -245,13 +246,6 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#task_list_back_btn{
-background-color:transparent;
-background-image: url(:/graphics/close.png);
-background-position: top left;
-border: none;
-}
-
 QPushButton#pushButton_no{
 background-color:transparent;
 background-image: url(:/graphics/wth_popup_no.png);
@@ -283,14 +277,28 @@ font-size: 14pt;
 color: black;
 }
 
-QPushButton#about_event_back_btn:hover, QPushButton#register_event_back_btn:hover{
+QPushButton#about_event_back_btn:hover, QPushButton#register_event_back_btn:hover, QPushButton#task_list_back_btn:hover, QPushButton#tools_list_back_btn:hover, QPushButton#skills_list_back_btn:hover{
 background-color:transparent;
 background-image: url(:/graphics/close_clicked.png);
 background-position: top left;
 border: none;
 }
 
-QPushButton#about_event_back_btn, QPushButton#register_event_back_btn{
+QPushButton#tools_list_back_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/close_blue_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#skills_list_back_btn:hover{
+background-color:transparent;
+background-image: url(:/graphics/close_green_clicked.png);
+background-position: top left;
+border: none;
+}
+
+QPushButton#about_event_back_btn, QPushButton#register_event_back_btn, QPushButton#task_list_back_btn, QPushButton#tools_list_back_btn, QPushButton#skills_list_back_btn{
 background-color:transparent;
 background-image: url(:/graphics/close.png);
 background-position: top left;
@@ -982,21 +990,6 @@ border: none;
         <height>281</height>
        </rect>
       </property>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>321</width>
-         <height>281</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="events_vertical_layout">
-        <property name="spacing">
-         <number>6</number>
-        </property>
-       </layout>
-      </widget>
      </widget>
     </widget>
    </widget>
@@ -1710,14 +1703,236 @@ Event :</string>
       <bool>true</bool>
      </property>
     </widget>
-    <zorder>register_event_back_btn</zorder>
-    <zorder>new_event_title</zorder>
-    <zorder>register_event_footer_panel</zorder>
-    <zorder>register_event_txt</zorder>
-    <zorder>NameEdit</zorder>
-    <zorder>register_skills_needed</zorder>
-    <zorder>register_tools_needed</zorder>
-    <zorder>ScreenFrame</zorder>
+   </widget>
+   <widget class="QFrame" name="tools_list">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>67</y>
+      <width>344</width>
+      <height>544</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="tools_list_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QScrollArea" name="tools_scrollArea">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>120</y>
+       <width>330</width>
+       <height>410</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContentsT">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>330</width>
+        <height>410</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="skills_list">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>67</y>
+      <width>344</width>
+      <height>544</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="skills_list_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QScrollArea" name="skills_scrollArea">
+     <property name="geometry">
+      <rect>
+       <x>11</x>
+       <y>120</y>
+       <width>319</width>
+       <height>410</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContentsS">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>319</width>
+        <height>410</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
@@ -1726,6 +1941,8 @@ Event :</string>
    <zorder>task_list</zorder>
    <zorder>about_task</zorder>
    <zorder>register_task</zorder>
+   <zorder>tools_list</zorder>
+   <zorder>skills_list</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>
