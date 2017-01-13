@@ -24,6 +24,7 @@ in the Netherlands.
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 from qgis.core import *
+import zipfile
 
 # initialize Qt resources from file resources.py
 import resources
@@ -41,6 +42,14 @@ except ImportError, e:
     has_pydevd = False
     is_debug = False
 
+# Create a signal file for new installations
+open(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/fresh_installation", 'a').close()
+
+# Unzip the DB
+with zipfile.ZipFile(
+                os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/shapefile_layers.zip",
+        "r") as z:
+    z.extractall(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/")
 
 class Willing_to_Help:
     """QGIS Plugin Implementation."""
@@ -211,6 +220,11 @@ class Willing_to_Help:
     def run(self):
         """Run method that loads and starts the plugin"""
         if not self.pluginIsActive:
+
+            # Check if this installation is brand new
+            if os.path.exists(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/fresh_installation"):
+                print "This is a clean startup. Reseting the layers.."
+                os.remove(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/fresh_installation")
 
             self.pluginIsActive = True
 

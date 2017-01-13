@@ -214,10 +214,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Calculate closest point (from point) to line segment (road)
             geo_point = self.point_segment_intersect(seg, (translated_x, translated_y))
 
-            # Make the temp point invisible
-            #symb = QgsMarkerSymbolV2.createSimple({'size': '2'})
-            #layer.rendererV2().setSymbol(symb)
-
             # Add the new event to the registry
             QgsMapLayerRegistry.instance().addMapLayer(layer)
 
@@ -233,10 +229,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             if "joined_event" in self.active_shpfiles:
                 self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "joined_event",
-                                                                                "new_event", "road_network"]]
+                                                                                "new_event", "road_network", "ext_basemap", "basemap"]]
             else:
                 self.added_canvaslayers = [self.active_shpfiles[x][1] for x in
-                                           ["user_logged", "tasks", "new_event", "road_network"]]
+                                           ["user_logged", "tasks", "new_event", "road_network", "ext_basemap", "basemap"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -255,6 +251,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Re-render the road network (along with everything else)
             self.active_shpfiles["road_network"][0].triggerRepaint()
+            #self.active_shpfiles["basemap"][0].triggerRepaint()
+            # Redraw the widget on the canvas
+            #self.canvas.refresh()  # todo needed?
 
     # Calculate closest point (from point) to line segment
     def point_segment_intersect(self, seg, p):
@@ -348,13 +347,16 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
             self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
-                "user_logged", "tasks", "joined_event", "road_network"]]
+                "user_logged", "tasks", "joined_event", "road_network", "ext_basemap", "basemap"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
 
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
+        #self.active_shpfiles["basemap"][0].triggerRepaint()
+        # Redraw the widget on the canvas
+        #self.canvas.refresh()  # todo needed?
 
     def calculateRouteDijkstra(self, graph, from_point, to_point, impedance=0):
         points = []
@@ -485,6 +487,33 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         users_layer = QgsVectorLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/users.shp",
                                      "all_user", "ogr")
 
+        # Load the Raster basemaps
+        s = QtCore.QSettings()
+        oldValidation = s.value("/Projections/defaultBehaviour")
+        s.setValue("/Projections/defaultBehaviour", "useGlobal")
+
+        # Create the raster basemap layer
+        basemap_layer = QgsRasterLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/basemap.tiff", "Basemap")
+        basemap_layer.setCrs(QgsCoordinateReferenceSystem(28992, QgsCoordinateReferenceSystem.EpsgCrsId))
+
+        # Create the extent raster extent_basemap layer
+        ext_basemap_layer = QgsRasterLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/extent_basemap.tiff", "Extent Basemap")
+        ext_basemap_layer.setCrs(QgsCoordinateReferenceSystem(28992, QgsCoordinateReferenceSystem.EpsgCrsId))
+
+        s.setValue("/Projections/defaultBehaviour", oldValidation)
+
+        # Add the raster layer to the dictionary
+        self.active_shpfiles["basemap"] = [basemap_layer, QgsMapCanvasLayer(basemap_layer)]
+
+        # Add the extent raster layer to the dictionary
+        self.active_shpfiles["ext_basemap"] = [ext_basemap_layer, QgsMapCanvasLayer(ext_basemap_layer)]
+
+        # Add the extent raster layer to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(ext_basemap_layer)
+
+        # Add the raster layer to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(basemap_layer)
+
         # Update the dictionary refering to each different user as a distinct feature object of a shapefile
         for feature in users_layer.getFeatures():
             self.user_features[feature['UseID']] = feature
@@ -503,7 +532,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Add the user feature into the provider/layer
         prov.addFeatures([self.user_features[self.user_id]])
 
-        # Make the temp point invisible
+        # Set the symbol for the layer
         symbol = QgsMarkerSymbolV2.createSimple({'size': '3'})
         user_layer.rendererV2().setSymbol(symbol)
 
@@ -522,6 +551,14 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             vlayer = QgsVectorLayer(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/" +
                                     layer_class + ".shp", layer_class, "ogr")
 
+            # Apply the theme
+            if layer_class == "road_network":
+                # Set the symbol
+                transp_symbol = QgsLineSymbolV2.createSimple({'line_style': 'no'})  # Todo change with transparency
+                vlayer.rendererV2().setSymbol(transp_symbol)
+
+            #    vlayer.loadNamedStyle(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/" + layer_class + ".qml")
+
             # Add the layer to the dictionary
             self.active_shpfiles[layer_class] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
@@ -529,7 +566,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
         # Load the corresponding Shapefiles
-        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "road_network"]]
+        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
 
         # provide set of layers for display on the map canvas
         self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -546,6 +583,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
+        #self.active_shpfiles["basemap"][0].triggerRepaint()
+
+        # Redraw the widget on the canvas
+        self.canvas.refresh()  # todo needed?
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -604,14 +645,17 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
                     # Re-render the road network (along with everything else)
                     self.active_shpfiles["road_network"][0].triggerRepaint()
-
-
+                    #self.active_shpfiles["basemap"][0].triggerRepaint()
+                    # Redraw the widget on the canvas
+                    #self.canvas.refresh()  # todo needed?
 
             if self.locate_me.isChecked():
                 self.refresh_extent("user_pos")
             else:
                 self.active_shpfiles["road_network"][0].triggerRepaint()
-
+                #self.active_shpfiles["basemap"][0].triggerRepaint()
+                # Redraw the widget on the canvas
+                #self.canvas.refresh()  # todo needed?
 
     def task_parser(self, layer):
         tsk_d = {}
