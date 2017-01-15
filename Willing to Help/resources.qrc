@@ -82,5 +82,6 @@
     <file>graphics/tools/21_off.png</file>
     <file>graphics/tools/22.png</file>
     <file>graphics/tools/22_off.png</file>
+    <file>graphics/arrived_to_task.png</file>
   </qresource>
 </RCC>

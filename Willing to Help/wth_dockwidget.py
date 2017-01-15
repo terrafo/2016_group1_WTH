@@ -78,6 +78,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.menu_group_btn.clicked.connect(self.show_skills_panel)
         self.skills_list_back_btn.clicked.connect(self.hide_skills_panel)
         self.tools_list_back_btn.clicked.connect(self.hide_tools_panel)
+        self.arrived_popup_back_btn.clicked.connect(self.arrived_popup.hide)
+        self.save_new_skills.clicked.connect(self.update_user_skills)
 
         self.pushButton_yes.clicked.connect(self.will_to_help)
         self.pass_check_btn.clicked.connect(self.login_correct)
@@ -96,6 +98,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.register_task.hide()
         self.skills_list.hide()
         self.tools_list.hide()
+        self.arrived_popup.hide()
 
         # Reference to the currently selected event
         self.selected_event = None
@@ -229,10 +232,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             if "joined_event" in self.active_shpfiles:
                 self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "joined_event",
-                                                                                "new_event", "road_network", "ext_basemap", "basemap"]]
+                                                                                "new_event", "road_network", "basemap", "ext_basemap"]]
             else:
                 self.added_canvaslayers = [self.active_shpfiles[x][1] for x in
-                                           ["user_logged", "tasks", "new_event", "road_network", "ext_basemap", "basemap"]]
+                                           ["user_logged", "tasks", "new_event", "road_network", "basemap", "ext_basemap"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -347,7 +350,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
             self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
-                "user_logged", "tasks", "joined_event", "road_network", "ext_basemap", "basemap"]]
+                "user_logged", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -637,6 +640,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                     # User arrived to the event. Terminate path
                     self.user_walking = False
 
+                    # Update the popup message
+                    self.arrived_popup_label.setText("You arrived at the hotspot.\nRemember, there are {} people in\ntotal registered to help.".format(3))
+
+                    # Show notice that user reached the event destination
+                    self.arrived_popup.show()
+
                     # Remove the previous new event to prevent multiple layer stacking
                     QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["joined_event"][0])
 
@@ -766,12 +775,16 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                     val = pair[1][:-1]
                 else:
                     val = pair[1]
+
                 self.skills[int(pair[0])] = val
 
-                # Build the selection list for skills, being available in the new event registration screen.
+                # Build one skills selection list for the new event registration screen and one for the user area.
                 item = QListWidgetItem(val)
+                item2 = QListWidgetItem(val)
                 item.setData(1, int(pair[0]))
+                item2.setData(1, int(pair[0]))
                 self.register_skills_needed.addItem(item)
+                self.skills_picklist.addItem(item2)
 
         # Prepare data about tool attributes
         with open(os.path.dirname(os.path.abspath(__file__)) + "/DB/tools.db") as f:
@@ -868,7 +881,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
     def list_str2int(self, str_list):
         # Get the corresponding list
         str_lst = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0][str_list][1:-1].split(", ")
-        return map(int, str_lst)
+
+        # This check is for the skills. We make sure the list is not empty, thus have a single space inside
+        if str_lst != ['']:
+            return map(int, str_lst)
+        else:
+            return []
 
     # Update the corresponding list based on the chosen id of the object
     def update_list(self, list_type, sid, state):
@@ -915,8 +933,30 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.tools_list.hide()
 
     def show_skills_panel(self):
+        # Get tools list (from string to int)
+        int_skills_list = self.list_str2int("skills")
+
+        # Everytime screen loads, reset the skill selections, based on user's skills.
+        for skill in range(self.skills_picklist.count()):
+            if self.skills_picklist.item(skill).data(1) in int_skills_list:
+                self.skills_picklist.item(skill).setSelected(True)
+            else:
+                self.skills_picklist.item(skill).setSelected(False)
 
         self.skills_list.show()
+
+    def update_user_skills(self):
+        new_user_skills = [skill.data(1) for skill in self.skills_picklist.selectedIndexes()]
+
+        # Get the feature (logged user)
+        feat = [feat for feat in self.active_shpfiles["user_logged"][0].getFeatures()][0]
+
+        # Get the logged user (feature) and update the skill-list
+        with edit(self.active_shpfiles["user_logged"][0]):
+            f = self.active_shpfiles["user_logged"][0].getFeatures().next()
+            #f["skills"] = ''.join(str(e) for e in new_user_skills)
+            f["skills"] = str(new_user_skills)
+            self.active_shpfiles["user_logged"][0].updateFeature(f)
 
     def show_tools_panel(self):
 

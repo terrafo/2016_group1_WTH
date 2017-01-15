@@ -82,6 +82,10 @@ QFrame#wth_popup{
 	background-image: url(:/graphics/wth_popup.png);
 }
 
+QFrame#arrived_popup{
+	background-image: url(:/graphics/arrived_to_task.png);
+}
+
 QFrame#ScreenFrame{
 background-image: url(:/graphics/Phone_Template.png);
 background-position: top left;
@@ -90,6 +94,12 @@ background-position: top left;
 QLabel#events_title, QLabel#event_title{
 font-family: Impact;
 font-size: 25pt;
+color: white;
+}
+
+QLabel#arrived_popup_label{
+font-family: Impact;
+font-size: 17pt;
 color: white;
 }
 
@@ -105,6 +115,13 @@ font-family: Impact;
 font-size: 19pt;
 border: none;
 font-style: italic;
+}
+
+QListWidget#skills_picklist{
+font-family: Impact;
+font-size: 15pt;
+border: none;
+color: #3e3f6c;
 }
 
 QTextEdit#about_event_txt{
@@ -215,17 +232,8 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#pass_check_btn{
-background-color:transparent;
-background-image: url(:/graphics/pass_popup_text.png);
-background-position: top left;
-border: none;
-font-family: Impact;
-font-size: 14pt;
-color: black;
-}
-
-QPushButton#pass_check_btn:hover{
+QPushButton#pass_check_btn:hover,
+QPushButton#save_new_skills:hover{
 background-color:transparent;
 background-image: url(:/graphics/pass_popup_text_checked.png);
 background-position: top left;
@@ -267,7 +275,8 @@ background-position: top left;
 border: none;
 }
 
-QSpinBox#user_selection{
+QSpinBox#user_selection,
+QPushButton#pass_check_btn{
 background-color:transparent;
 background-image: url(:/graphics/pass_popup_text.png);
 background-position: top left;
@@ -277,6 +286,16 @@ font-size: 14pt;
 color: black;
 }
 
+QPushButton#save_new_skills{
+background-color:transparent;
+background-image: url(:/graphics/pass_popup_text.png);
+background-position: top left;
+border: none;
+font-family: Impact;
+font-size: 14pt;
+color: white;
+}
+
 QPushButton#about_event_back_btn:hover, QPushButton#register_event_back_btn:hover, QPushButton#task_list_back_btn:hover, QPushButton#tools_list_back_btn:hover, QPushButton#skills_list_back_btn:hover{
 background-color:transparent;
 background-image: url(:/graphics/close_clicked.png);
@@ -284,14 +303,15 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#tools_list_back_btn:hover{
+QPushButton#tools_list_back_btn:hover, QPushButton#arrived_popup_back_btn{
 background-color:transparent;
 background-image: url(:/graphics/close_blue_clicked.png);
 background-position: top left;
 border: none;
 }
 
-QPushButton#skills_list_back_btn:hover{
+QPushButton#skills_list_back_btn:hover,
+QPushButton#arrived_popup_back_btn:hover{
 background-color:transparent;
 background-image: url(:/graphics/close_green_clicked.png);
 background-position: top left;
@@ -1890,48 +1910,171 @@ Event :</string>
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QScrollArea" name="skills_scrollArea">
+    <widget class="QListWidget" name="skills_picklist">
      <property name="geometry">
       <rect>
-       <x>11</x>
-       <y>120</y>
-       <width>319</width>
-       <height>410</height>
+       <x>23</x>
+       <y>140</y>
+       <width>301</width>
+       <height>311</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <stylestrategy>PreferAntialias</stylestrategy>
+       <family>Impact</family>
+       <pointsize>15</pointsize>
       </font>
      </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
-     <property name="widgetResizable">
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+     <property name="sortingEnabled">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="scrollAreaWidgetContentsS">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>319</width>
-        <height>410</height>
-       </rect>
-      </property>
-     </widget>
+    </widget>
+    <widget class="QPushButton" name="save_new_skills">
+     <property name="geometry">
+      <rect>
+       <x>137</x>
+       <y>470</y>
+       <width>71</width>
+       <height>52</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string>SAVE
+SKILLS</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="arrived_popup">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>67</y>
+      <width>344</width>
+      <height>544</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="arrived_popup_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>156</x>
+       <y>350</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="arrived_popup_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>195</y>
+       <width>324</width>
+       <height>145</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>17</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignHCenter|Qt::AlignTop</set>
+     </property>
     </widget>
    </widget>
    <zorder>map_canvas</zorder>
@@ -1943,6 +2086,7 @@ Event :</string>
    <zorder>register_task</zorder>
    <zorder>tools_list</zorder>
    <zorder>skills_list</zorder>
+   <zorder>arrived_popup</zorder>
   </widget>
   <zorder>Screen</zorder>
   <zorder>ScreenFrame</zorder>

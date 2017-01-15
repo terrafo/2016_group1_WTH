@@ -223,7 +223,8 @@ class Willing_to_Help:
 
             # Check if this installation is brand new
             if os.path.exists(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/fresh_installation"):
-                print "This is a clean startup. Reseting the layers.."
+                for map in QgsMapLayerRegistry.instance().mapLayers():
+                    QgsMapLayerRegistry.instance().removeMapLayer(map)
                 os.remove(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/fresh_installation")
 
             self.pluginIsActive = True
