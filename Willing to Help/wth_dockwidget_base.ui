@@ -70,6 +70,10 @@ QFrame#skills_list{
 	background-image: url(:/graphics/skills_panel.png);
 }
 
+QFrame#group_menu{
+	background-image: url(:/graphics/group_panel.png);
+}
+
 QFrame#tools_list{
 	background-image: url(:/graphics/tools_panel.png);
 }
@@ -117,7 +121,8 @@ border: none;
 font-style: italic;
 }
 
-QListWidget#skills_picklist{
+QListWidget#skills_picklist,
+QListWidget#group_list{
 font-family: Impact;
 font-size: 15pt;
 border: none;
@@ -233,7 +238,8 @@ border: none;
 }
 
 QPushButton#pass_check_btn:hover,
-QPushButton#save_new_skills:hover{
+QPushButton#save_new_skills:hover,
+QPushButton#toggle_show_members:hover{
 background-color:transparent;
 background-image: url(:/graphics/pass_popup_text_checked.png);
 background-position: top left;
@@ -286,7 +292,8 @@ font-size: 14pt;
 color: black;
 }
 
-QPushButton#save_new_skills{
+QPushButton#save_new_skills,
+QPushButton#toggle_show_members{
 background-color:transparent;
 background-image: url(:/graphics/pass_popup_text.png);
 background-position: top left;
@@ -296,7 +303,7 @@ font-size: 14pt;
 color: white;
 }
 
-QPushButton#about_event_back_btn:hover, QPushButton#register_event_back_btn:hover, QPushButton#task_list_back_btn:hover, QPushButton#tools_list_back_btn:hover, QPushButton#skills_list_back_btn:hover{
+QPushButton#about_event_back_btn:hover, QPushButton#register_event_back_btn:hover, QPushButton#task_list_back_btn:hover, QPushButton#tools_list_back_btn:hover{
 background-color:transparent;
 background-image: url(:/graphics/close_clicked.png);
 background-position: top left;
@@ -311,6 +318,7 @@ border: none;
 }
 
 QPushButton#skills_list_back_btn:hover,
+QPushButton#group_list_back_btn:hover,
 QPushButton#arrived_popup_back_btn:hover{
 background-color:transparent;
 background-image: url(:/graphics/close_green_clicked.png);
@@ -318,7 +326,7 @@ background-position: top left;
 border: none;
 }
 
-QPushButton#about_event_back_btn, QPushButton#register_event_back_btn, QPushButton#task_list_back_btn, QPushButton#tools_list_back_btn, QPushButton#skills_list_back_btn{
+QPushButton#about_event_back_btn, QPushButton#register_event_back_btn, QPushButton#task_list_back_btn, QPushButton#tools_list_back_btn, QPushButton#skills_list_back_btn, QPushButton#group_list_back_btn{
 background-color:transparent;
 background-image: url(:/graphics/close.png);
 background-position: top left;
@@ -1915,7 +1923,7 @@ Event :</string>
       <rect>
        <x>23</x>
        <y>140</y>
-       <width>301</width>
+       <width>299</width>
        <height>311</height>
       </rect>
      </property>
@@ -2077,6 +2085,153 @@ SKILLS</string>
      </property>
     </widget>
    </widget>
+   <widget class="QFrame" name="group_menu">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>67</y>
+      <width>344</width>
+      <height>204</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Roboto</family>
+     </font>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="group_list_back_btn">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>10</y>
+       <width>32</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto</family>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="group_list">
+     <property name="geometry">
+      <rect>
+       <x>75</x>
+       <y>5</y>
+       <width>195</width>
+       <height>128</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>15</pointsize>
+      </font>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="toggle_show_members">
+     <property name="geometry">
+      <rect>
+       <x>137</x>
+       <y>145</y>
+       <width>71</width>
+       <height>52</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Impact</family>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string>SHOW
+ON MAP</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>32</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
    <zorder>map_canvas</zorder>
    <zorder>top_bar</zorder>
    <zorder>wth_popup</zorder>
@@ -2086,6 +2241,7 @@ SKILLS</string>
    <zorder>register_task</zorder>
    <zorder>tools_list</zorder>
    <zorder>skills_list</zorder>
+   <zorder>group_menu</zorder>
    <zorder>arrived_popup</zorder>
   </widget>
   <zorder>Screen</zorder>
