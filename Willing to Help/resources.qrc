@@ -24,6 +24,7 @@
     <file>graphics/wth_popup_yes_clicked.png</file>
     <file>graphics/wth_popup_no_clicked.png</file>
     <file>graphics/pass_popup_text_checked.png</file>
+    <file>graphics/pass_popup_text_notchecked.png</file>
     <file>graphics/button_background.png</file>
     <file>graphics/thin_button_background.png</file>
     <file>graphics/center_off.png</file>
@@ -84,5 +85,11 @@
     <file>graphics/tools/22.png</file>
     <file>graphics/tools/22_off.png</file>
     <file>graphics/arrived_to_task.png</file>
+    <file>graphics/user_panel.png</file>
+    <file>graphics/my_skills.png</file>
+    <file>graphics/my_tools.png</file>
+    <file>graphics/my_skills_hover.png</file>
+    <file>graphics/my_tools_hover.png</file>
+    <file>graphics/exp_front.png</file>
   </qresource>
 </RCC>

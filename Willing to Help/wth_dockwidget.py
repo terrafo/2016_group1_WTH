@@ -22,7 +22,6 @@ in the Netherlands.
  ***************************************************************************/
 """
 
-#TODO clean the unused imports
 from PyQt4 import QtCore, uic
 from PyQt4.QtGui import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDockWidget, QPixmap, QPushButton, QListWidgetItem, \
     QGridLayout
@@ -74,11 +73,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Bind buttons to specific path finding methods
         self.registerEvent_btn.clicked.connect(self.event_registration)
 
-        self.menu_settings_btn.clicked.connect(self.show_tools_panel)
+        self.menu_settings_btn.clicked.connect(self.show_user_panel)
         self.menu_group_btn.clicked.connect(self.show_group_panel)
         self.skills_list_back_btn.clicked.connect(self.hide_skills_panel)
         self.tools_list_back_btn.clicked.connect(self.hide_tools_panel)
         self.arrived_popup_back_btn.clicked.connect(self.arrived_popup.hide)
+        self.user_panel_back_btn.clicked.connect(self.user_panel.hide)
         self.group_list_back_btn.clicked.connect(self.group_menu.hide)
         self.save_new_skills.clicked.connect(self.update_user_skills)
         # Toggle transparency of the shapefile showing the rest of the group
@@ -93,7 +93,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.register_event_back_btn.clicked.connect(self.close_register_event)
         self.register_event.clicked.connect(self.register_event_init)
 
-        #self.blablabtn.clicked.connect(self.show_skills_panel) # Todo not implemented yet
+        self.my_skills_btn.clicked.connect(self.show_skills_panel)
+        self.my_tools_btn.clicked.connect(self.show_tools_panel)
 
         # Hide none init layers
         self.top_bar.hide()
@@ -105,12 +106,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.group_menu.hide()
         self.tools_list.hide()
         self.arrived_popup.hide()
+        self.user_panel.hide()
 
         # Build a dictionary to handle the layer toggles
         self.layer_toggler = {"task_list": self.task_list, "about_task": self.about_task,
                               "register_task": self.close_register_event, "group_menu": self.group_menu,
                               "skills_list": self.skills_list, "tools_list": self.tools_list,
-                              "arrived_popup": self.arrived_popup}
+                              "arrived_popup": self.arrived_popup, "user_panel": self.user_panel}
 
         # Reference to the currently selected event
         self.selected_event = None
@@ -162,15 +164,26 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Refresh extent to user position
         self.refresh_extent("user_pos")
 
-        # Refresh event list
-        self.refresh_event_list()
-
         # Refresh user tools list
         self.tools_list_loader()
 
     def place_new_event(self, *args):
         # If user is in the "adding a new event" section, proceed.
         if self.adding_new_event:
+
+            # If group layer has been created in the past, delete it to prevent conflicts.
+            if "group_pos" in self.active_shpfiles:
+                QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["group_pos"][0])
+
+                # Delete the corresponding key from the active shapefiles dictionary
+                del self.active_shpfiles["group_pos"]
+
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                    "user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
+
+                # provide set of layers for display on the map canvas
+                self.map_canvas.setLayerSet(self.added_canvaslayers)
+
             # Get the raw extent of the map
             points = str(self.map_canvas.extent().toString()).split(":")
             point1 = points[0].split(",")
@@ -202,8 +215,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Add the feature point
             fet = QgsFeature()
             fet.setGeometry(QgsGeometry.fromPoint(QgsPoint(translated_x, translated_y)))
+
             # Set the position of the point based on the translated coordinates (point not on the road network)
-            #fet.setAttributes(["NewEvent", 2, 0.3])
             pr.addFeatures([fet])
 
             # Find the line segment (road) closer to the temp point layer. The algorithm runs hidden
@@ -265,9 +278,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Re-render the road network (along with everything else)
             self.active_shpfiles["road_network"][0].triggerRepaint()
-            #self.active_shpfiles["basemap"][0].triggerRepaint()
-            # Redraw the widget on the canvas
-            #self.canvas.refresh()  # todo needed?
 
     # Calculate closest point (from point) to line segment
     def point_segment_intersect(self, seg, p):
@@ -328,9 +338,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         if not "joined_event" in self.active_shpfiles:
             vlayer = QgsVectorLayer('%s?crs=EPSG:%s' % ('LINESTRING', ref_lay.crs().postgisSrid()), 'Routes', "memory")
 
-            # Set the symbol
-            symbol = QgsLineSymbolV2.createSimple({'line_width': '1'})
-            vlayer.rendererV2().setSymbol(symbol)
+            # Set the symbology
+            vlayer.loadNamedStyle( os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/user_path.qml")
 
             provider = vlayer.dataProvider()
 
@@ -343,7 +352,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # insert route line
         fet = QgsFeature()
         fet.setGeometry(QgsGeometry.fromPolyline(path))
-        #fet.setAttributes(['Fastest Route'])
+
         provider.addFeatures([fet])
         provider.updateExtents()
 
@@ -353,7 +362,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.map_canvas.setExtent(extent)
 
         res = processing.runalg("qgis:createpointsalonglines", 'Routes', 7, 0, 0, None)
-        #self.iface.addVectorLayer(res['output'], 'my points', 'ogr')
 
         # Update user positioned path to joined event
         layer = QgsVectorLayer(res['output'], "points_path", "ogr")
@@ -365,16 +373,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.active_shpfiles["joined_event"] = [vlayer, QgsMapCanvasLayer(vlayer)]
 
             self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
-                "user_logged", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
+                "user_logged", "group_pos", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
 
             # provide set of layers for display on the map canvas
             self.map_canvas.setLayerSet(self.added_canvaslayers)
 
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
-        #self.active_shpfiles["basemap"][0].triggerRepaint()
-        # Redraw the widget on the canvas
-        #self.canvas.refresh()  # todo needed?
 
     def calculateRouteDijkstra(self, graph, from_point, to_point, impedance=0):
         points = []
@@ -395,6 +400,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         return points
 
     def refresh_event_list(self):
+
         # Container Widget
         event_widget = QWidget()
         event_widget.setStyleSheet("QWidget{background: transparent}")
@@ -402,50 +408,72 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         #Layout of Container Widget
         layout = QVBoxLayout(self)
         for event, attr in self.task_dict.iteritems():
-            event_layout = QHBoxLayout(self)
+            if attr['active'] == 1:
+                event_layout = QHBoxLayout(self)
 
-            event_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.event_icons[attr["priority"]]
-            event_icon = QLabel()
-            event_icon.setGeometry(0, 0, 16, 29)
-            event_icon.setMinimumWidth(16)
-            event_icon.setMaximumWidth(16)
-            event_icon.setPixmap(QPixmap(event_icon_path))
-            event_layout.addWidget(event_icon)
+                event_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + self.event_icons[attr["priority"]]
+                event_icon = QLabel()
+                event_icon.setGeometry(0, 0, 16, 29)
+                event_icon.setMinimumWidth(16)
+                event_icon.setMaximumWidth(16)
+                event_icon.setPixmap(QPixmap(event_icon_path))
+                event_layout.addWidget(event_icon)
+                event_text_layout = QVBoxLayout(self)
+                event_text_layout.setSpacing(0)
 
-            event_text_layout = QVBoxLayout(self)
-            event_text_layout.setSpacing(0)
+                # Generate the dynamic button widget
+                dynamic_wid = self.event_button_generator(event, attr)
 
-            event_text_layout.addWidget(self.event_button_generator(event, attr))
+                event_text_layout.addWidget(dynamic_wid)
 
-            event_skills = QLabel("Hammer, Dog, Money")
-            event_skills.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white;}")
-            event_skills.setMaximumWidth(220)
-            event_text_layout.addWidget(event_skills)
+                # Get the corresponding list of tools
+                str_lst = attr["tools"][1:-1].split(", ")
 
-            event_layout.addLayout(event_text_layout)
+                # This check is to make sure the list is not empty, thus have a single space inside
+                if str_lst != ['']:
+                    int_tools_list = map(int, str_lst)
+                else:
+                    int_tools_list = []
 
-            # Calculate the type of group icon
-            if self.task_dict[event]['ppl_needed'] == self.task_dict[event]['joined']:
-                members_state = "Group_Icon1.png"
-            else:
-                members_state = "Group_Icon0.png"
+                # Get the tools
+                tools_list = ', '.join([self.tools[x] for x in int_tools_list])
 
-            group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + members_state
-            group_icon = QLabel()
-            group_icon.setGeometry(0, 0, 34, 34)
-            group_icon.setMinimumWidth(34)
-            group_icon.setMaximumWidth(34)
-            group_icon.setPixmap(QPixmap(group_icon_path))
-            event_layout.addWidget(group_icon)
+                if tools_list == "":
+                    tools_list = "-"
 
-            layout.addLayout(event_layout)
+                event_skills = QLabel(tools_list)
+                event_skills.setStyleSheet("QLabel {font-family: Roboto; font-size: 11pt; color: white;}")
+                event_skills.setMaximumWidth(220)
+                event_text_layout.addWidget(event_skills)
+                event_layout.addLayout(event_text_layout)
+
+                # Calculate the type of group icon
+                if self.task_dict[event]['ppl_needed'] == self.task_dict[event]['joined']:
+                    members_state = "Group_Icon1.png"
+                else:
+                    members_state = "Group_Icon0.png"
+
+                group_icon_path = os.path.dirname(os.path.abspath(__file__)) + "/graphics/" + members_state
+                group_icon = QLabel()
+                group_icon.setGeometry(0, 0, 34, 34)
+                group_icon.setMinimumWidth(34)
+                group_icon.setMaximumWidth(34)
+                group_icon.setPixmap(QPixmap(group_icon_path))
+                event_layout.addWidget(group_icon)
+                layout.addLayout(event_layout)
 
         event_widget.setLayout(layout)
         self.events_scrollArea.setWidget(event_widget)
 
     def event_button_generator(self, task_id, attr):
         btn = QPushButton(attr["title"])
-        btn.setStyleSheet("QPushButton {font-family: Impact; font-size: 17pt; color: white; text-align: left;}")
+
+        # Change the background if user has joined already the event
+        if self.joined_event == task_id:
+            btn.setStyleSheet(
+                "QPushButton {font-family: Impact; font-size: 17pt; color: rgb(245, 238, 49); text-align: left;}")
+        else:
+            btn.setStyleSheet("QPushButton {font-family: Impact; font-size: 17pt; color: white; text-align: left;}")
         btn.setMinimumHeight(35)
         btn.setMaximumWidth(220)
         btn.clicked.connect(lambda: self.check_about_event(task_id, attr))
@@ -501,6 +529,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
         # Set the ID of the event that user is currently registered to
         self.joined_event = event_id
+
+        # Create the group layer
+        self.generate_group_layer()
 
         self.find_nearest_path()
         self.about_task.hide()
@@ -583,10 +614,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Apply the theme
             if layer_class == "road_network":
                 # Set the symbol
-                transp_symbol = QgsLineSymbolV2.createSimple({'line_style': 'no'})  # Todo change with transparency
+                transp_symbol = QgsLineSymbolV2.createSimple({'line_style': 'no'})
                 vlayer.rendererV2().setSymbol(transp_symbol)
-
-            #    vlayer.loadNamedStyle(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/" + layer_class + ".qml")
 
             # Add the layer to the dictionary
             self.active_shpfiles[layer_class] = [vlayer, QgsMapCanvasLayer(vlayer)]
@@ -594,8 +623,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # add the layer to the registry
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 
+        # Set the symbology
+        self.active_shpfiles["tasks"][0].loadNamedStyle(
+            os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/tasks.qml")
+
         # Load the corresponding Shapefiles
-        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in ["user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
+        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+            "user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
 
         # provide set of layers for display on the map canvas
         self.map_canvas.setLayerSet(self.added_canvaslayers)
@@ -613,15 +647,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Re-render the road network (along with everything else)
         self.active_shpfiles["road_network"][0].triggerRepaint()
 
-        # Redraw the widget on the canvas
-        #self.canvas.refresh()  # todo needed?
-
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
         self.timer.stop()
 
     def will_to_help(self):
+        # Prepare the z-Indexes and show the init layers
         self.wth_popup.hide()
         self.top_bar.show()
         getattr(self.top_bar, "raise")()
@@ -631,6 +663,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.menu_group_btn.show()
         self.menu_layers_btn.show()
         self.locate_me.show()
+        getattr(self.exp_score_main, "raise")()
+        getattr(self.skills_list, "raise")()
+        getattr(self.tools_list, "raise")()
+        getattr(self.arrived_popup, "raise")()
 
     def refresher(self):
         # Append to time fixed seconds
@@ -645,7 +681,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Time difference between simulated time and event's end time
             d = e - self_simulated_time
-            event_timer = '{0:0=2d}:{1:0=2d}:{2:0=2d}'.format(((d.seconds/3600) + d.days*24), ((d.seconds//60) % 60), (d.seconds % 60))
+            event_timer = '{0:0=2d}:{1:0=2d}:{2:0=2d}'.format(
+                ((d.seconds/3600) + d.days*24), ((d.seconds//60) % 60), (d.seconds % 60))
 
             # Update event timer
             self.counter_event.setText(event_timer)
@@ -666,15 +703,13 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                     self.user_walking = False
 
                     # Update the popup message
-                    self.arrived_popup_label.setText("You arrived at the hotspot.\nRemember, there are {} people in\ntotal registered to help.\n\nGOOD LUCK and STAY SAFE!".format(3))
+                    self.arrived_popup_label.setText("You arrived at the hotspot.\nRemember, there are {} people in\n"
+                                                     "total registered to help.\n\nGOOD LUCK and STAY SAFE!".format(3))
 
                     # Hide every possibly activated layer, to make following popup the single object being showed
-                    self.task_list.hide()
-                    self.about_task.hide()
-                    self.register_task.hide()
-                    self.skills_list.hide()
-                    self.group_menu.hide()
-                    self.tools_list.hide()
+
+                    # Hide all layers except arrived_popup
+                    self.layers_to_keep(["arrived_popup"])
 
                     # Show notice that user reached the event destination
                     self.arrived_popup.show()
@@ -705,15 +740,15 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                                'about': str(attrs[flds.index('about')]), 'joined': attrs[flds.index('joined')],
                                'priority': attrs[flds.index('priority')], 'ppl_needed': attrs[flds.index('ppl_needed')],
                                'skills': str(attrs[flds.index('skills')]), 'tools': str(attrs[flds.index('tools')]),
-                               'position': feature.geometry().asPoint()}
+                               'active': attrs[flds.index('active')], 'position': feature.geometry().asPoint()}
         return tsk_d
 
     def check_events(self):
-        # Hide possibly activated group_menu layer
-        #self.group_menu.hide()
+
+        # Refresh event list
+        self.refresh_event_list()
 
         self.layers_to_keep(["task_list"])
-
         self.task_list.show()
 
     def close_check_events(self):
@@ -748,7 +783,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Prepare the data into a temporal dict, to fill the new event
             edit_event_attr_bank = {'timed': str(self.register_counter_event.text()), 'title': str(self.NameEdit.text()),
-                                    'about': str(self.register_event_txt.toPlainText()), 'priority': 3,
+                                    'about': str(self.register_event_txt.toPlainText()), 'priority': 3, 'active': 1,
                                     'ppl_needed': int(self.register_about_group_icon.text()), 'joined': 0, 'sid': sid,
                                     'skills': str([x.data(1) for x in self.register_skills_needed.selectedItems()]),
                                     'tools': str([x.data(1) for x in self.register_tools_needed.selectedItems()])}
@@ -783,9 +818,6 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # Call the handler of the new_event's registration panel exit
             self.close_register_event()
-
-            # Redraw the widget on the canvas
-            self.canvas.refresh()  # todo needed?
 
     def close_about_event(self):
         self.about_task.hide()
@@ -966,7 +998,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.tools_list.hide()
 
     def show_skills_panel(self):
-        # Get tools list (from string to int)
+        # Get skills list (from string to int)
         int_skills_list = self.list_str2int("skills")
 
         # Everytime screen loads, reset the skill selections, based on user's skills.
@@ -987,6 +1019,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             f["skills"] = str(new_user_skills)
             self.active_shpfiles["user_logged"][0].updateFeature(f)
 
+        # Hide the skills panel after saving
+        self.skills_list.hide()
+
     def show_tools_panel(self):
 
         self.tools_list.show()
@@ -997,6 +1032,10 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
             # No event is selected anymore
             self.selected_event = None
+
+            # If group_pos does not exist.. Create the group layer
+            if "group_pos" not in self.active_shpfiles:
+                self.generate_group_layer()
 
             # Prepare list with group names
             self.get_group_members()
@@ -1016,6 +1055,62 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             # Set the warning message
             self.arrived_popup_label.setText("\n{}, first register\nyourself to an event!".format(
                 self.active_shpfiles["user_logged"][0].getFeatures().next()["first_name"]))
+
+    def generate_group_layer(self):
+        # Use road_network as the ref system.
+        ref_layer = self.active_shpfiles["road_network"][0]
+
+        # If group layer has been created in the past, try deleting it.
+        if "group_pos" in self.active_shpfiles:
+            try:
+                # Remove the previous new event to prevent multiple layer stacking
+                QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["group_pos"][0])
+            except:
+                pass
+
+        # Generate a temp vector layer, of a point (that will have the translated coordinates).
+        group_layer = QgsVectorLayer('%s?crs=EPSG:%s' % ('Point', ref_layer.crs().postgisSrid()), 'GroupPOS', "memory")
+
+        # Set the layer's provider
+        pr = group_layer.dataProvider()
+
+        # Generate the fields, based on the fields of the user layer
+        pr.addAttributes([field for field in self.active_shpfiles["user_logged"][0].pendingFields()])
+
+        # Tell the vector layer to fetch changes from the provider
+        group_layer.updateFields()
+
+        # For each user
+        for user, attrs in self.user_features.iteritems():
+            # If user has also joined the event..
+            if attrs["joined_tsk"] == self.joined_event:
+
+                # Add the user feature on the layer
+                pr.addFeatures([attrs])
+                pr.updateExtents()
+
+        # Add the layer to the dictionary
+        self.active_shpfiles["group_pos"] = [group_layer, QgsMapCanvasLayer(group_layer)]
+
+        # Toggle show members button on
+        self.toggle_show_members.setChecked(True)
+
+        # add the layer to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(group_layer)
+
+        # Load the corresponding Shapefiles
+        if "joined_event" in self.active_shpfiles:
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                "user_logged", "group_pos", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
+        else:
+            self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                "user_logged", "group_pos", "tasks", "road_network", "basemap", "ext_basemap"]]
+
+        # provide set of layers for display on the map canvas
+        self.map_canvas.setLayerSet(self.added_canvaslayers)
+
+        # Set the symbology
+        group_layer.loadNamedStyle(os.path.dirname(os.path.abspath(__file__)) + "/DB/shapefile_layers/group_layer.qml")
 
     def get_group_members(self):
         # Remove all old entries
@@ -1063,11 +1158,80 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         self.join_event.clicked.connect(self.joined_event_done)
 
     def joined_event_done(self):
-        #print self.task_dict[self.joined_event]
-        print "congratulations"
+        # Set user walking init state
+        self.user_walking = False
+
+        # If user was ontop of a path..
+        if "joined_event" in self.active_shpfiles:
+            # Remove the "joined_event" layer
+            QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["joined_event"][0])
+
+            # Delete the corresponding key from the active shapefiles dictionary
+            del self.active_shpfiles["joined_event"]
+
+        # Remove the "group_pos" layer
+        QgsMapLayerRegistry.instance().removeMapLayer(self.active_shpfiles["group_pos"][0])
+
+        # Delete the corresponding key from the active shapefiles dictionary
+        del self.active_shpfiles["group_pos"]
+
+        self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+            "user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
+
+        # provide set of layers for display on the map canvas
+        self.map_canvas.setLayerSet(self.added_canvaslayers)
+
+        # Get user's history data
+        hist = self.active_shpfiles["user_logged"][0].getFeatures().next()["tasks_name"][:-1]
+        hist_numb = self.active_shpfiles["user_logged"][0].getFeatures().next()["tasks_done"]
+
+        # If user has no history record
+        if len(hist) == 1:
+            hist = hist + self.task_dict[self.joined_event]["title"] + "]"
+        else:
+            hist = hist + ";;" + self.task_dict[self.joined_event]["title"] + "]"
+
+        # Update user's history
+        with edit(self.active_shpfiles["user_logged"][0]):
+            f = self.active_shpfiles["user_logged"][0].getFeatures().next()
+            f["tasks_name"] = hist
+            f["tasks_done"] = hist_numb + 1
+            self.active_shpfiles["user_logged"][0].updateFeature(f)
+
+        for feature in self.active_shpfiles["tasks"][0].getFeatures():
+            # Get the corresponding task
+            if feature["sid"] == self.joined_event:
+                # Update task lists (both dictionary and layer) to hide the event
+                with edit(self.active_shpfiles["tasks"][0]):
+                    feature["active"] = 0
+                    self.task_dict[self.joined_event]["active"] = 0
+                    self.active_shpfiles["tasks"][0].updateFeature(feature)
+
+        # User is not participating in any event anymore
+        self.joined_event = None
+
+        self.layers_to_keep(["user_panel"])
+        self.show_user_panel()
 
     def toggle_show_group(self):
-        print "switch group show"
+        if self.toggle_show_members.isChecked():
+            # Load the corresponding Shapefiles
+            if "joined_event" in self.active_shpfiles:
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                    "user_logged", "group_pos", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
+            else:
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                    "user_logged", "group_pos", "tasks", "road_network", "basemap", "ext_basemap"]]
+        else:
+            if "joined_event" in self.active_shpfiles:
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                    "user_logged", "tasks", "joined_event", "road_network", "basemap", "ext_basemap"]]
+            else:
+                self.added_canvaslayers = [self.active_shpfiles[x][1] for x in [
+                    "user_logged", "tasks", "road_network", "basemap", "ext_basemap"]]
+
+        # provide set of layers for display on the map canvas
+        self.map_canvas.setLayerSet(self.added_canvaslayers)
 
     def layers_to_keep(self, keep_layers):
         # For every layer in the toggler dictionary
@@ -1077,6 +1241,46 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
                 self.layer_toggler[layer]()
             elif layer not in keep_layers:
                 self.layer_toggler[layer].hide()
+
+    def show_user_panel(self):
+
+        # Hide first all other panels..
+        self.layers_to_keep("user_panel")
+
+        # Get the original number of user's completed tasks
+        exp = self.active_shpfiles["user_logged"][0].getFeatures().next()["tasks_done"]
+
+        # Set the exp number
+        self.exp_score_main.setText("\n\n{}".format(exp))
+
+        # Do this to handle the low number of events we currently have for the demo
+        exp *= 10
+        if exp > 99:
+            exp = 99
+
+        # Calculate the color of user exp
+        r = ((255 * exp) / 100) % 255
+        g = ((255 * (100 - exp)) / 100) % 255
+        b = 0
+
+        rgb = "{}, {}, {}".format(r, g, b)
+
+        # Set the color based on user's experience
+        self.exp_score_back.setStyleSheet(
+            "QLabel {background-color: rgb(" + rgb + "); background-position: top left; border: none;}")
+
+        # Remove all old entries
+        self.event_history_list.clear()
+
+        hist = self.active_shpfiles["user_logged"][0].getFeatures().next()["tasks_name"][1:-1].split(";;")
+
+        # For each user..
+        for idx, event in enumerate(hist):
+            # Add each member in the list.
+            self.event_history_list.addItem(QListWidgetItem("{}. {}".format(idx+1, event)))
+
+        # Show the panel
+        self.user_panel.show()
 
     def login_correct(self):
         # Set the user based on the credentials
