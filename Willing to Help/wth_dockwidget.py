@@ -477,9 +477,9 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Change the background if user has joined already the event
         if self.joined_event == task_id:
             btn.setStyleSheet(
-                "QPushButton {font-family: Impact; font-size: 17pt; color: rgb(245, 238, 49); text-align: left;}")
+                "QPushButton {font-family: Impact; font-size: 14pt; color: rgb(245, 238, 49); text-align: left;}")
         else:
-            btn.setStyleSheet("QPushButton {font-family: Impact; font-size: 17pt; color: white; text-align: left;}")
+            btn.setStyleSheet("QPushButton {font-family: Impact; font-size: 14pt; color: white; text-align: left;}")
         btn.setMinimumHeight(35)
         btn.setMaximumWidth(220)
         btn.clicked.connect(lambda: self.check_about_event(task_id, attr))
@@ -507,7 +507,34 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.task_dict[task_id]['ppl_needed'] - self.task_dict[task_id]['joined']))
         self.group_missing_note.setStyleSheet(
             "QLabel {font-family: Roboto; font-size: 11pt; color: white; qproperty-alignment: AlignCenter AlignRight;}")
-        about_text = "<html><b>This and this and that.</b</html><br><br>" + attr["about"]
+
+        get_tools = attr["tools"][1:-1].split(", ")
+        if get_tools == [""]:
+            t = "-"
+        else:
+            t = map(int, get_tools)
+
+        try:
+            tools_lst_str = [self.tools[i] for i in t]
+            tools_str = ", ".join(tools_lst_str)
+        except:
+            tools_str = "-"
+
+        get_skills = attr["skills"][1:-1].split(", ")
+        if get_skills == [""]:
+            s = "-"
+        else:
+            s = map(int, get_skills)
+
+        try:
+            skills_lst_str = [self.skills[i] for i in s]
+            skills_str = ", ".join(skills_lst_str)
+        except:
+            skills_str = "-"
+
+        about_text = "<html><b>Tools Needed:</b><br>" + tools_str + "<br><br><b>Skills Needed:</b><br>" + skills_str + \
+                     "</html><br><br>" + attr["about"]
+
         self.about_event_txt.setText(about_text)
         try:
             self.join_event.clicked.disconnect()

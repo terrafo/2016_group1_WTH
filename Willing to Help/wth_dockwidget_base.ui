@@ -105,6 +105,12 @@ font-size: 25pt;
 color: white;
 }
 
+QLabel#user_name{
+font-family: Impact;
+font-size: 21pt;
+color: white;
+}
+
 QLabel#arrived_popup_label{
 font-family: Impact;
 font-size: 17pt;
