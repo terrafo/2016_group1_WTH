@@ -99,9 +99,15 @@ background-image: url(:/graphics/Phone_Template.png);
 background-position: top left;
 }
 
-QLabel#events_title, QLabel#event_title, QLabel#user_name{
+QLabel#events_title, QLabel#user_name{
 font-family: Impact;
 font-size: 25pt;
+color: white;
+}
+
+QLabel#event_title{
+font-family: Impact;
+font-size: 20pt;
 color: white;
 }
 
@@ -1191,7 +1197,7 @@ border: none;
      <property name="font">
       <font>
        <family>Impact</family>
-       <pointsize>25</pointsize>
+       <pointsize>20</pointsize>
       </font>
      </property>
      <property name="midLineWidth">
