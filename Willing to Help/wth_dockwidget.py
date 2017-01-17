@@ -737,7 +737,8 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
 
                     # Update the popup message
                     self.arrived_popup_label.setText("You arrived at the hotspot.\nRemember, there are {} people in\n"
-                                                     "total registered to help.\n\nGOOD LUCK and STAY SAFE!".format(3))
+                                                     "total registered to help.\n\nGOOD LUCK and STAY SAFE!".format(
+                        self.task_dict[self.joined_event]['joined'] + 1))
 
                     # Hide every possibly activated layer, to make following popup the single object being showed
 
@@ -1172,7 +1173,34 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
             self.task_dict[self.joined_event]['ppl_needed'] - self.task_dict[self.joined_event]['joined']))
         self.group_missing_note.setStyleSheet(
             "QLabel {font-family: Roboto; font-size: 11pt; color: white; qproperty-alignment: AlignCenter AlignRight;}")
-        about_text = "<html><b>This and this and that.</b</html><br><br>" + self.task_dict[self.joined_event]["about"]
+
+        get_tools = self.task_dict[self.joined_event]["tools"][1:-1].split(", ")
+        if get_tools == [""]:
+            t = "-"
+        else:
+            t = map(int, get_tools)
+
+        try:
+            tools_lst_str = [self.tools[i] for i in t]
+            tools_str = ", ".join(tools_lst_str)
+        except:
+            tools_str = "-"
+
+        get_skills = self.task_dict[self.joined_event]["skills"][1:-1].split(", ")
+        if get_skills == [""]:
+            s = "-"
+        else:
+            s = map(int, get_skills)
+
+        try:
+            skills_lst_str = [self.skills[i] for i in s]
+            skills_str = ", ".join(skills_lst_str)
+        except:
+            skills_str = "-"
+
+        about_text = "<html><b>Tools Needed:</b><br>" + tools_str + "<br><br><b>Skills Needed:</b><br>" + skills_str + \
+                     "</html><br><br>" + self.task_dict[self.joined_event]["about"]
+
         self.about_event_txt.setText(about_text)
 
         # Update the Button text

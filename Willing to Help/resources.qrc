@@ -91,5 +91,8 @@
     <file>graphics/my_skills_hover.png</file>
     <file>graphics/my_tools_hover.png</file>
     <file>graphics/exp_front.png</file>
+    <file>graphics/placeholder_orange.svg</file>
+    <file>graphics/placeholder_green.svg</file>
+    <file>graphics/placeholder_red.svg</file>
   </qresource>
 </RCC>

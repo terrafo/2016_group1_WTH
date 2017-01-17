@@ -55,7 +55,7 @@
    <bool>false</bool>
   </property>
   <property name="windowTitle">
-   <string>Smarphone</string>
+   <string>Smartphone</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QFrame#task_list, QFrame#about_task, QFrame#register_task{
