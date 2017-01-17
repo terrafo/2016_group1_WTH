@@ -411,7 +411,7 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         event_widget = QWidget()
         event_widget.setStyleSheet("QWidget{background: transparent}")
 
-        #Layout of Container Widget
+        #Layout of Container widget
         layout = QVBoxLayout(self)
         for event, attr in self.task_dict.iteritems():
             if attr['active'] == 1:
