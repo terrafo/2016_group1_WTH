@@ -99,7 +99,7 @@ background-image: url(:/graphics/Phone_Template.png);
 background-position: top left;
 }
 
-QLabel#events_title, QLabel#event_title{
+QLabel#events_title, QLabel#event_title, QLabel#user_name{
 font-family: Impact;
 font-size: 25pt;
 color: white;
@@ -2564,6 +2564,22 @@ ON MAP</string>
      </property>
      <property name="margin">
       <number>0</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="user_name">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>20</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </widget>

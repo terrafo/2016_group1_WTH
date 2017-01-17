@@ -167,6 +167,12 @@ class WTH_DockWidget(QDockWidget, FORM_CLASS):
         # Refresh user tools list
         self.tools_list_loader()
 
+        name = self.active_shpfiles["user_logged"][0].getFeatures().next()["first_name"] + " " + \
+               self.active_shpfiles["user_logged"][0].getFeatures().next()["last_name"]
+
+        # Refresh name
+        self.user_name.setText(name)
+
     def place_new_event(self, *args):
         # If user is in the "adding a new event" section, proceed.
         if self.adding_new_event:
